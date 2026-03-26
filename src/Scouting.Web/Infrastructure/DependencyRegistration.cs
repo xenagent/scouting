@@ -13,11 +13,16 @@ namespace Scouting.Web.Infrastructure;
 public static class DependencyRegistration
 {
     public static IServiceCollection AddInfrastructure(
-        this IServiceCollection services, IConfiguration configuration)
+        this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
     {
-        // DbContext
+        // DbContext — InMemory for development, PostgreSQL for production
         services.AddDbContext<AppDbContext>((provider, options) =>
-            options.UseNpgsql(configuration.GetConnectionString("Default")));
+        {
+            if (env.IsDevelopment())
+                options.UseInMemoryDatabase("ScoutingDb");
+            else
+                options.UseNpgsql(configuration.GetConnectionString("Default"));
+        });
 
         // Entity configurations (used by BaseDbContext to auto-map)
         services.AddSingleton<IEntityConfiguration, UserConfiguration>();
@@ -36,6 +41,8 @@ public static class DependencyRegistration
         services.AddScoped<IAnalysisService, AnalysisService>();
         services.AddScoped<IVoteService, VoteService>();
         services.AddScoped<IScouterService, ScouterService>();
+        services.AddScoped<IFileService, FileService>();
+        services.AddSingleton<IJwtService, JwtService>();
 
         return services;
     }

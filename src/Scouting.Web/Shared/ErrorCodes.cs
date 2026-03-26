@@ -16,4 +16,6 @@ public static class ErrorCodes
     public const string FOLLOW_CANNOT_FOLLOW_YOURSELF = "FOLLOW_CANNOT_FOLLOW_YOURSELF";
     public const string FOLLOW_ALREADY_FOLLOWING = "FOLLOW_ALREADY_FOLLOWING";
     public const string FOLLOW_NOT_FOLLOWING = "FOLLOW_NOT_FOLLOWING";
+    public const string FILE_INVALID_TYPE = "FILE_INVALID_TYPE";
+    public const string FILE_TOO_LARGE = "FILE_TOO_LARGE";
 }
