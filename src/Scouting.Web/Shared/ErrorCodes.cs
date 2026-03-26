@@ -18,4 +18,7 @@ public static class ErrorCodes
     public const string FOLLOW_NOT_FOLLOWING = "FOLLOW_NOT_FOLLOWING";
     public const string FILE_INVALID_TYPE = "FILE_INVALID_TYPE";
     public const string FILE_TOO_LARGE = "FILE_TOO_LARGE";
+    public const string LIKE_ALREADY_LIKED = "LIKE_ALREADY_LIKED";
+    public const string LIKE_NOT_LIKED = "LIKE_NOT_LIKED";
+    public const string ANALYSIS_FLAGGED_AS_DUPLICATE = "ANALYSIS_FLAGGED_AS_DUPLICATE";
 }

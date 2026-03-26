@@ -13,7 +13,9 @@ public class User : BaseModel
     public string? Bio { get; private set; }
     public string? AvatarUrl { get; private set; }
     public UserRole Role { get; private set; } = UserRole.User;
+    public UserLevel Level { get; private set; } = UserLevel.Starter;
     public int ApprovedAnalysisCount { get; private set; }
+    public int TotalLikesReceived { get; private set; }
     public int FollowerCount { get; private set; }
 
     public static ResultDomain<User> Create(string email, string username, string passwordHash)
@@ -37,8 +39,33 @@ public class User : BaseModel
     }
 
     public void SetAvatar(string url) => AvatarUrl = url;
-    public void IncrementApprovedAnalysisCount() => ApprovedAnalysisCount++;
+    public void MakeAdmin() => Role = UserRole.Admin;
+
+    public void IncrementApprovedAnalysisCount()
+    {
+        ApprovedAnalysisCount++;
+        RecalculateLevel();
+    }
+
+    public void IncrementLikesReceived()
+    {
+        TotalLikesReceived++;
+        RecalculateLevel();
+    }
+
+    public void DecrementLikesReceived()
+    {
+        if (TotalLikesReceived > 0) TotalLikesReceived--;
+        RecalculateLevel();
+    }
+
     public void IncrementFollowerCount() => FollowerCount++;
     public void DecrementFollowerCount() { if (FollowerCount > 0) FollowerCount--; }
-    public void MakeAdmin() => Role = UserRole.Admin;
+
+    private void RecalculateLevel()
+    {
+        var points = ApprovedAnalysisCount * 10 + TotalLikesReceived;
+        Level = UserLevelExtensions.FromPoints(points);
+    }
 }
+

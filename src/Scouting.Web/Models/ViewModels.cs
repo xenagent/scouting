@@ -1,3 +1,5 @@
+using Scouting.Web.Domains.UserEntity;
+
 namespace Scouting.Web.Models;
 
 // ── Players ───────────────────────────────────────────────────────────────────
@@ -40,12 +42,30 @@ public class AnalysisVm
 {
     public Guid Id { get; set; }
     public string VideoUrl { get; set; } = "";
-    public string Content { get; set; } = "";
+
+    // Sections
+    public string Content { get; set; } = "";           // General (required)
+    public string? TechnicalContent { get; set; }
+    public string? TacticalContent { get; set; }
+    public string? PhysicalContent { get; set; }
+    public string? StrengthsContent { get; set; }
+    public string? WeaknessesContent { get; set; }
+    public int FilledSectionsCount { get; set; }
+
+    // Quality / AI
     public string? AISummary { get; set; }
     public decimal? AIScore { get; set; }
+    public bool IsFlaggedAsDuplicate { get; set; }
+
+    // Scout
     public string ScoutUsername { get; set; } = "";
     public Guid ScoutId { get; set; }
+    public UserLevel ScoutLevel { get; set; }
     public DateTime CreatedAt { get; set; }
+
+    // Likes
+    public int LikeCount { get; set; }
+    public bool IsLikedByCurrentUser { get; set; }
 }
 
 public class PendingPlayerVm
@@ -93,7 +113,9 @@ public class ScouterVm
     public string? AvatarUrl { get; set; }
     public string? Bio { get; set; }
     public int ApprovedAnalysisCount { get; set; }
+    public int TotalLikesReceived { get; set; }
     public int FollowerCount { get; set; }
+    public UserLevel Level { get; set; }
 }
 
 public class ScouterProfileVm : ScouterVm
@@ -123,6 +145,9 @@ public class PendingAnalysisVm
     public Guid SuggestedByUserId { get; set; }
     public string VideoUrl { get; set; } = "";
     public string ContentPreview { get; set; } = "";
+    public int FilledSectionsCount { get; set; }
+    public bool IsFlaggedAsDuplicate { get; set; }
+    public decimal? QualityScore { get; set; }
     public DateTime SubmittedAt { get; set; }
 }
 

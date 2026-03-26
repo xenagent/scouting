@@ -3,7 +3,6 @@
 @inject IPlayerService PlayerService
 @inject IAnalysisService AnalysisService
 @inject AuthenticationStateProvider AuthState
-@inject NavigationManager Nav
 @rendermode InteractiveServer
 
 <PageTitle>Analiz Yaz — Scout</PageTitle>
@@ -20,7 +19,14 @@
         <div class="card border-pitch-800 bg-pitch-950/30 text-center py-10">
             <div class="text-4xl mb-4">✓</div>
             <h2 class="text-xl font-bold text-white mb-2">Analizin alındı!</h2>
-            <p class="text-scout-400 mb-6">Admin incelemesinden sonra yayına alınacak.</p>
+            <p class="text-scout-400 mb-2">Admin incelemesinden sonra yayına alınacak.</p>
+            @if (_qualityScore.HasValue)
+            {
+                <p class="text-sm text-scout-500 mb-6">
+                    Tahmini kalite skoru: <span class="text-pitch-400 font-bold">@_qualityScore.Value.ToString("0.0") / 10</span>
+                    · @_input.FilledSectionsCount / 5 bölüm dolduruldu
+                </p>
+            }
             <div class="flex justify-center gap-3">
                 <a href="/players/@_selectedPlayer!.Slug" class="btn-secondary">Oyuncuya Git</a>
                 <button @onclick="Reset" class="btn-primary">Yeni Analiz Ekle</button>
@@ -41,10 +47,7 @@
             @if (_searching)
             {
                 <div class="space-y-2">
-                    @for (int i = 0; i < 3; i++)
-                    {
-                        <div class="animate-pulse h-14 bg-scout-800 rounded-lg"></div>
-                    }
+                    @for (int i = 0; i < 3; i++) { <div class="animate-pulse h-14 bg-scout-800 rounded-lg"></div> }
                 </div>
             }
             else if (_searchResults is not null && _searchResults.Count == 0)
@@ -60,13 +63,9 @@
                                 class="w-full flex items-center gap-3 p-3 rounded-lg bg-scout-800/50 hover:bg-scout-800 transition-colors text-left">
                             <div class="w-10 h-10 rounded-lg bg-pitch-950 flex items-center justify-center shrink-0 overflow-hidden">
                                 @if (!string.IsNullOrEmpty(p.ImageUrl))
-                                {
-                                    <img src="@p.ImageUrl" alt="@p.Name" class="w-10 h-10 object-cover rounded-lg" />
-                                }
+                                { <img src="@p.ImageUrl" alt="@p.Name" class="w-10 h-10 object-cover rounded-lg" /> }
                                 else
-                                {
-                                    <span class="font-display text-lg text-pitch-600">@p.Name[0]</span>
-                                }
+                                { <span class="font-display text-lg text-pitch-600">@p.Name[0]</span> }
                             </div>
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-semibold text-white">@p.Name</p>
@@ -91,19 +90,15 @@
     else
     {
         <!-- ADIM 2: Analiz Yaz -->
-        <div class="space-y-6">
+        <div class="space-y-5">
 
             <!-- Seçili Oyuncu -->
             <div class="card flex items-center gap-4">
                 <div class="w-14 h-14 rounded-lg bg-pitch-950 flex items-center justify-center shrink-0 overflow-hidden">
                     @if (!string.IsNullOrEmpty(_selectedPlayer.ImageUrl))
-                    {
-                        <img src="@_selectedPlayer.ImageUrl" alt="@_selectedPlayer.Name" class="w-14 h-14 object-cover rounded-lg" />
-                    }
+                    { <img src="@_selectedPlayer.ImageUrl" alt="@_selectedPlayer.Name" class="w-14 h-14 object-cover rounded-lg" /> }
                     else
-                    {
-                        <span class="font-display text-2xl text-pitch-600">@_selectedPlayer.Name[0]</span>
-                    }
+                    { <span class="font-display text-2xl text-pitch-600">@_selectedPlayer.Name[0]</span> }
                 </div>
                 <div class="flex-1 min-w-0">
                     <p class="font-bold text-white">@_selectedPlayer.Name</p>
@@ -115,26 +110,87 @@
                 </div>
             </div>
 
-            <!-- Analiz Formu -->
+            <!-- Kalite İndikatörü -->
+            <div class="flex items-center gap-3 px-1">
+                <div class="flex-1 bg-scout-800 rounded-full h-1.5">
+                    <div class="bg-pitch-500 h-1.5 rounded-full transition-all duration-300"
+                         style="width: @(Math.Min(100, _input.FilledSectionsCount * 20 + Math.Min(40, _input.TotalLength / 25)))%"></div>
+                </div>
+                <span class="text-xs text-scout-500 shrink-0">
+                    Kalite: @(_input.FilledSectionsCount)/5 bölüm · @_input.TotalLength karakter
+                </span>
+            </div>
+
+            <!-- Zorunlu: Genel Yorum -->
             <div class="card">
-                <h3 class="text-sm font-semibold text-scout-300 uppercase tracking-wider mb-4">Analiz</h3>
-                <div class="space-y-4">
-                    <div>
-                        <label class="label">Video Linki *</label>
-                        <input @bind="_videoUrl" type="url" placeholder="https://youtube.com/..." class="input" />
+                <h3 class="text-sm font-semibold text-scout-300 uppercase tracking-wider mb-1">Genel Yorum *</h3>
+                <p class="text-xs text-scout-600 mb-3">Oyuncu hakkındaki genel değerlendirmeniz (min. 50 karakter)</p>
+                <div>
+                    <input @bind="_input.VideoUrl" type="url" placeholder="Video linki (YouTube, Wyscout…) *" class="input mb-3" />
+                    <textarea @bind="_input.General" rows="5"
+                              placeholder="Oyuncunun genel profili, karakteri, potansiyeli..."
+                              class="input resize-none"></textarea>
+                    <div class="flex justify-end mt-1">
+                        <span class="text-xs @((_input.General?.Length ?? 0) < 50 ? "text-red-500" : "text-pitch-500")">
+                            @(_input.General?.Length ?? 0)/5000
+                        </span>
                     </div>
+                </div>
+            </div>
+
+            <!-- Opsiyonel Bölümler -->
+            <div class="card">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-scout-300 uppercase tracking-wider">Detaylı Analiz</h3>
+                    <span class="text-xs text-scout-600">Her bölüm kalite skorunu artırır</span>
+                </div>
+                <div class="space-y-4">
+
                     <div>
-                        <label class="label">Analiz Yazısı * <span class="text-scout-600 font-normal">(min. 50 karakter)</span></label>
-                        <textarea @bind="_content" rows="8"
-                                  placeholder="Oyuncunun teknik özellikleri, güçlü/zayıf yanları, potansiyeli..."
-                                  class="input resize-none"></textarea>
-                        <div class="flex justify-between mt-1">
-                            <p class="text-xs text-scout-600">50–5000 karakter</p>
-                            <span class="text-xs @((_content?.Length ?? 0) < 50 ? "text-red-500" : "text-pitch-500")">
-                                @(_content?.Length ?? 0)/5000
-                            </span>
+                        <label class="label flex items-center gap-2">
+                            <span class="badge-position text-xs">TEK</span> Teknik Beceriler
+                            <span class="text-scout-600 font-normal text-xs ml-auto">opsiyonel</span>
+                        </label>
+                        <textarea @bind="_input.Technical" rows="3"
+                                  placeholder="Dribling, ilk dokunuş, pas kalitesi, bitiricilik..."
+                                  class="input resize-none text-sm"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="label flex items-center gap-2">
+                            <span class="badge-position text-xs">TAK</span> Taktiksel Katkı
+                            <span class="text-scout-600 font-normal text-xs ml-auto">opsiyonel</span>
+                        </label>
+                        <textarea @bind="_input.Tactical" rows="3"
+                                  placeholder="Pressing, pozisyon alma, hareket kalıpları, alan okuma..."
+                                  class="input resize-none text-sm"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="label flex items-center gap-2">
+                            <span class="badge-position text-xs">FİZ</span> Fiziksel Özellikler
+                            <span class="text-scout-600 font-normal text-xs ml-auto">opsiyonel</span>
+                        </label>
+                        <textarea @bind="_input.Physical" rows="3"
+                                  placeholder="Hız, güç, dayanıklılık, hava topu..."
+                                  class="input resize-none text-sm"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="label text-pitch-400">Güçlü Yönler <span class="text-scout-600 font-normal text-xs">opsiyonel</span></label>
+                            <textarea @bind="_input.Strengths" rows="3"
+                                      placeholder="Bu oyuncuyu öne çıkaran özellikler..."
+                                      class="input resize-none text-sm"></textarea>
+                        </div>
+                        <div>
+                            <label class="label text-red-400/70">Geliştirmesi Gerekenler <span class="text-scout-600 font-normal text-xs">opsiyonel</span></label>
+                            <textarea @bind="_input.Weaknesses" rows="3"
+                                      placeholder="Geliştirmesi gereken yönler..."
+                                      class="input resize-none text-sm"></textarea>
                         </div>
                     </div>
+
                 </div>
             </div>
 
@@ -162,11 +218,11 @@
     private bool _searching;
     private PlayerListItemVm? _selectedPlayer;
 
-    private string _videoUrl = "";
-    private string _content = "";
+    private AnalysisInput _input = new();
     private bool _submitting;
     private bool _submitted;
     private string? _error;
+    private decimal? _qualityScore;
     private Guid _userId;
 
     protected override async Task OnInitializedAsync()
@@ -174,10 +230,9 @@
         var auth = await AuthState.GetAuthenticationStateAsync();
         Guid.TryParse(auth.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out _userId);
 
-        // Pre-select player if slug query param provided
         if (!string.IsNullOrEmpty(Slug))
         {
-            var result = await PlayerService.GetListAsync(new PlayerFilter { Search = Slug, PageSize = 1 });
+            var result = await PlayerService.GetListAsync(new PlayerFilter { Search = Slug, PageSize = 10 });
             _selectedPlayer = result.Data.FirstOrDefault(p => p.Slug == Slug);
         }
     }
@@ -201,45 +256,53 @@
         _selectedPlayer = player;
         _searchResults = null;
         _searchQuery = "";
+        _input = new();
     }
 
     private async Task Submit()
     {
         _error = null;
 
-        if (string.IsNullOrWhiteSpace(_videoUrl))
+        if (string.IsNullOrWhiteSpace(_input.VideoUrl))
         {
             _error = "Video linki zorunludur.";
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(_content) || _content.Length < 50)
+        if (string.IsNullOrWhiteSpace(_input.General) || _input.General.Length < 50)
         {
-            _error = "Analiz yazısı en az 50 karakter olmalıdır.";
+            _error = "Genel yorum en az 50 karakter olmalıdır.";
             return;
         }
 
         _submitting = true;
-        var result = await AnalysisService.AddAnalysisAsync(_selectedPlayer!.Id, _videoUrl, _content, _userId);
+        var result = await AnalysisService.AddAnalysisAsync(_selectedPlayer!.Id, _input, _userId);
         _submitting = false;
 
         if (result.IsSuccess)
+        {
+            // Show estimated quality score from local formula
+            var totalLen = _input.TotalLength;
+            _qualityScore = Math.Round(Math.Min(5m, totalLen / 200m) + _input.FilledSectionsCount, 1);
             _submitted = true;
+        }
         else
+        {
             _error = result.ErrorCode switch
             {
-                ErrorCodes.ANALYSIS_CONTENT_TOO_SHORT => "Analiz çok kısa.",
+                ErrorCodes.ANALYSIS_CONTENT_TOO_SHORT => "Genel yorum çok kısa.",
                 ErrorCodes.COMMON_MESSAGE_RECORD_NOT_FOUND => "Oyuncu bulunamadı.",
                 _ => "Bir hata oluştu: " + result.ErrorCode
             };
+        }
     }
 
     private void Reset()
     {
         _selectedPlayer = null;
-        _videoUrl = "";
-        _content = "";
+        _input = new();
         _submitted = false;
         _error = null;
+        _qualityScore = null;
     }
 }

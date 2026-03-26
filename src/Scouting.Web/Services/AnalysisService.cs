@@ -11,8 +11,13 @@ namespace Scouting.Web.Services;
 public class AnalysisService : IAnalysisService
 {
     private readonly AppDbContext _db;
+    private readonly IAIAnalysisService _ai;
 
-    public AnalysisService(AppDbContext db) => _db = db;
+    public AnalysisService(AppDbContext db, IAIAnalysisService ai)
+    {
+        _db = db;
+        _ai = ai;
+    }
 
     public async Task<ServiceListResult<RecentAnalysisVm>> GetRecentAsync(
         int count = 10, CancellationToken ct = default)
@@ -55,7 +60,7 @@ public class AnalysisService : IAnalysisService
             from a in _db.Analyses.AsNoTracking()
             where a.Status == AnalysisStatus.Pending
             join p in _db.Players.AsNoTracking() on a.PlayerId equals p.Id
-            where p.Status == PlayerStatus.Approved   // sadece onaylı oyuncular
+            where p.Status == PlayerStatus.Approved
             join u in _db.Users.AsNoTracking() on a.CreatedUserId equals u.Id into users
             from u in users.DefaultIfEmpty()
             orderby a.CreatedTime descending
@@ -71,6 +76,9 @@ public class AnalysisService : IAnalysisService
                 ContentPreview = a.Content!.Length > 300
                     ? a.Content.Substring(0, 300) + "..."
                     : a.Content,
+                FilledSectionsCount = a.FilledSectionsCount,
+                IsFlaggedAsDuplicate = a.IsFlaggedAsDuplicate,
+                QualityScore = a.AIScore,
                 SubmittedAt = a.CreatedTime
             })
             .Skip((page - 1) * pageSize)
@@ -81,17 +89,53 @@ public class AnalysisService : IAnalysisService
     }
 
     public async Task<ServiceResult> AddAnalysisAsync(
-        Guid playerId, string videoUrl, string content, Guid userId, CancellationToken ct = default)
+        Guid playerId, AnalysisInput input, Guid userId, CancellationToken ct = default)
     {
         var player = await _db.Players.AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == playerId && p.Status == PlayerStatus.Approved, ct);
-        if (player is null) return ServiceResult.Fail(ErrorCodes.COMMON_MESSAGE_RECORD_NOT_FOUND);
+        if (player is null)
+            return ServiceResult.Fail(ErrorCodes.COMMON_MESSAGE_RECORD_NOT_FOUND);
 
-        var result = Analysis.Create(playerId, videoUrl, content, userId);
+        var result = Analysis.Create(
+            playerId, input.VideoUrl, input.General, userId,
+            input.Technical, input.Tactical, input.Physical,
+            input.Strengths, input.Weaknesses);
+
         if (!result.IsSuccess)
             return ServiceResult.Fail(result.Messages?.FirstOrDefault()?.Code ?? "UNKNOWN");
 
-        await _db.Analyses.AddAsync(result.Data!, ct);
+        var analysis = result.Data!;
+
+        // Collect existing analyses for duplicate detection
+        var existingContent = await _db.Analyses
+            .AsNoTracking()
+            .Where(a => a.PlayerId == playerId && a.Status == AnalysisStatus.Approved)
+            .Select(a => a.Content!)
+            .ToListAsync(ct);
+
+        // AI evaluation (stub or real Bedrock)
+        var aiInput = new AIAnalysisInput
+        {
+            PlayerName = player.Name!,
+            PlayerPosition = player.Position.ToString(),
+            VideoUrl = input.VideoUrl,
+            GeneralContent = input.General,
+            TechnicalContent = input.Technical,
+            TacticalContent = input.Tactical,
+            PhysicalContent = input.Physical,
+            StrengthsContent = input.Strengths,
+            WeaknessesContent = input.Weaknesses,
+            ExistingAnalysesContent = existingContent
+        };
+
+        var aiResult = await _ai.EvaluateAsync(aiInput, ct);
+        if (aiResult.Score > 0 || !string.IsNullOrEmpty(aiResult.Summary))
+            analysis.SetAIReview(
+                aiResult.Summary ?? "",
+                aiResult.Score,
+                aiResult.IsPossibleDuplicate);
+
+        await _db.Analyses.AddAsync(analysis, ct);
         await _db.SaveChangesAsync(ct);
         return ServiceResult.Ok();
     }

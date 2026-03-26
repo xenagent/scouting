@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using scommon;
 using scommon.Auths;
 using Scouting.Web.Domains.AnalysisEntity;
+using Scouting.Web.Domains.AnalysisLikeEntity;
 using Scouting.Web.Domains.PlayerEntity;
 using Scouting.Web.Domains.ScouterFollowEntity;
 using Scouting.Web.Domains.UserEntity;
@@ -30,6 +31,7 @@ public static class DependencyRegistration
         services.AddSingleton<IEntityConfiguration, AnalysisConfiguration>();
         services.AddSingleton<IEntityConfiguration, VoteConfiguration>();
         services.AddSingleton<IEntityConfiguration, ScouterFollowConfiguration>();
+        services.AddSingleton<IEntityConfiguration, AnalysisLikeConfiguration>();
 
         // Current user (reads from cookie auth claims via IHttpContextAccessor)
         services.AddHttpContextAccessor();
@@ -43,6 +45,8 @@ public static class DependencyRegistration
         services.AddScoped<IScouterService, ScouterService>();
         services.AddScoped<IFileService, FileService>();
         services.AddSingleton<IJwtService, JwtService>();
+        services.AddSingleton<IAIAnalysisService, StubAIAnalysisService>();
+        services.AddScoped<IAnalysisLikeService, AnalysisLikeService>();
 
         return services;
     }

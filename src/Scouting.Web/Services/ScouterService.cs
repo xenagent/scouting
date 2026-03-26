@@ -30,7 +30,9 @@ public class ScouterService : IScouterService
                 AvatarUrl = u.AvatarUrl,
                 Bio = u.Bio,
                 ApprovedAnalysisCount = u.ApprovedAnalysisCount,
-                FollowerCount = u.FollowerCount
+                TotalLikesReceived = u.TotalLikesReceived,
+                FollowerCount = u.FollowerCount,
+                Level = u.Level
             })
             .ToListAsync(ct);
 
@@ -50,7 +52,9 @@ public class ScouterService : IScouterService
                 AvatarUrl = u.AvatarUrl,
                 Bio = u.Bio,
                 ApprovedAnalysisCount = u.ApprovedAnalysisCount,
-                FollowerCount = u.FollowerCount
+                TotalLikesReceived = u.TotalLikesReceived,
+                FollowerCount = u.FollowerCount,
+                Level = u.Level
             })
             .FirstOrDefaultAsync(ct);
 

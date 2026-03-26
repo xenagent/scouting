@@ -91,7 +91,7 @@ public class PlayerService : IPlayerService
     }
 
     public async Task<ServiceResult<PlayerDetailVm>> GetDetailAsync(
-        string slug, CancellationToken ct = default)
+        string slug, Guid? viewerUserId = null, CancellationToken ct = default)
     {
         var player = await _db.Players
             .AsNoTracking()
@@ -124,19 +124,42 @@ public class PlayerService : IPlayerService
             where a.PlayerId == player.Id && a.Status == AnalysisStatus.Approved
             join u in _db.Users.AsNoTracking() on a.CreatedUserId equals u.Id into users
             from u in users.DefaultIfEmpty()
-            orderby a.AIScore descending, a.CreatedTime descending
+            orderby a.LikeCount descending, a.AIScore descending, a.CreatedTime descending
             select new AnalysisVm
             {
                 Id = a.Id,
                 VideoUrl = a.VideoUrl!,
                 Content = a.Content!,
+                TechnicalContent = a.TechnicalContent,
+                TacticalContent = a.TacticalContent,
+                PhysicalContent = a.PhysicalContent,
+                StrengthsContent = a.StrengthsContent,
+                WeaknessesContent = a.WeaknessesContent,
+                FilledSectionsCount = a.FilledSectionsCount,
                 AISummary = a.AISummary,
                 AIScore = a.AIScore,
+                IsFlaggedAsDuplicate = a.IsFlaggedAsDuplicate,
+                LikeCount = a.LikeCount,
                 ScoutUsername = u != null ? u.Username! : "anonymous",
                 ScoutId = a.CreatedUserId ?? Guid.Empty,
+                ScoutLevel = u != null ? u.Level : default,
                 CreatedAt = a.CreatedTime
             })
             .ToListAsync(ct);
+
+        // Mark which analyses the viewer has liked
+        if (viewerUserId.HasValue && player.Analyses.Count > 0)
+        {
+            var analysisIds = player.Analyses.Select(a => a.Id).ToList();
+            var liked = await _db.AnalysisLikes
+                .AsNoTracking()
+                .Where(l => l.UserId == viewerUserId && analysisIds.Contains(l.AnalysisId))
+                .Select(l => l.AnalysisId)
+                .ToListAsync(ct);
+            var likedSet = liked.ToHashSet();
+            foreach (var a in player.Analyses)
+                a.IsLikedByCurrentUser = likedSet.Contains(a.Id);
+        }
 
         var votes = await _db.Votes
             .AsNoTracking()
@@ -202,7 +225,8 @@ public class PlayerService : IPlayerService
         if (!string.IsNullOrWhiteSpace(input.ImageUrl))
             player.SetImageUrl(input.ImageUrl);
 
-        var analysisResult = Analysis.Create(player.Id, input.VideoUrl, input.AnalysisContent, userId);
+        var analysisResult = Analysis.Create(player.Id, input.VideoUrl, input.AnalysisContent, userId,
+            technical: null, tactical: null, physical: null, strengths: null, weaknesses: null);
         if (!analysisResult.IsSuccess)
             return ServiceResult.Fail(analysisResult.Messages?.FirstOrDefault()?.Code ?? "UNKNOWN");
 
