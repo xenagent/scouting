@@ -4,6 +4,7 @@
 @inject IAnalysisLikeService LikeService
 @inject NavigationManager Nav
 @inject AuthenticationStateProvider AuthState
+@using System.Security.Claims
 @rendermode InteractiveServer
 
 @if (_loading)
@@ -104,6 +105,127 @@ else
                 </div>
             </div>
         </div>
+
+        <!-- Transfermarkt Panel -->
+        @if (_player.MarketValue.HasValue || _player.SeasonStats.Count > 0 || _isAdmin)
+        {
+            <div class="card mb-8 border border-scout-800">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm font-semibold text-scout-300 uppercase tracking-wider">Transfermarkt Verileri</span>
+                        @if (_player.LastTransfermarktSync.HasValue)
+                        {
+                            <span class="text-xs text-scout-600">Son sync: @_player.LastTransfermarktSync.Value.ToString("dd MMM yyyy HH:mm")</span>
+                        }
+                    </div>
+                    @if (_isAdmin && !string.IsNullOrEmpty(_player.TransfermarktUrl))
+                    {
+                        <button @onclick="SyncFromTm" disabled="@_syncing"
+                                class="flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg border border-pitch-700 text-pitch-400 hover:bg-pitch-950 hover:text-pitch-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                            @if (_syncing)
+                            {
+                                <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg>
+                                <span>Çekiliyor...</span>
+                            }
+                            else
+                            {
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                <span>TM'den Sync Et</span>
+                            }
+                        </button>
+                    }
+                </div>
+
+                @if (_syncError is not null)
+                {
+                    <div class="text-xs text-red-400 mb-3">@_syncError</div>
+                }
+                @if (_syncSuccess)
+                {
+                    <div class="text-xs text-pitch-400 mb-3">Veriler güncellendi.</div>
+                }
+
+                <!-- Market value -->
+                @if (_player.MarketValue.HasValue)
+                {
+                    <div class="flex items-center gap-4 mb-5">
+                        <div>
+                            <p class="text-xs text-scout-500 mb-0.5">Piyasa Değeri</p>
+                            <p class="text-xl font-bold text-white">€@_player.MarketValue.Value.ToString("0.##")m</p>
+                        </div>
+                        @if (_player.PreviousMarketValue.HasValue)
+                        {
+                            var diff = _player.MarketValue.Value - _player.PreviousMarketValue.Value;
+                            var isUp = diff > 0;
+                            <div class="flex items-center gap-1 @(isUp ? "text-pitch-400" : "text-red-400") text-sm">
+                                <span>@(isUp ? "▲" : "▼")</span>
+                                <span>€@Math.Abs(diff).ToString("0.##")m</span>
+                                <span class="text-scout-600 text-xs">(önceki sync)</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(_player.TransfermarktUrl))
+                        {
+                            <a href="@_player.TransfermarktUrl" target="_blank" rel="noopener noreferrer"
+                               class="text-xs text-scout-500 hover:text-scout-300 ml-auto">
+                                Transfermarkt'ta Aç ↗
+                            </a>
+                        }
+                    </div>
+                }
+
+                <!-- Season stats table -->
+                @if (_player.SeasonStats.Count > 0)
+                {
+                    <div>
+                        <p class="text-xs text-scout-500 uppercase tracking-wider mb-2">Sezon İstatistikleri</p>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="text-xs text-scout-500 border-b border-scout-800">
+                                        <th class="text-left py-2 pr-4">Sezon</th>
+                                        <th class="text-center py-2 px-3">Maç</th>
+                                        <th class="text-center py-2 px-3">Gol</th>
+                                        <th class="text-center py-2 px-3">Asist</th>
+                                        <th class="text-center py-2 px-3">G+A</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var s in _player.SeasonStats)
+                                    {
+                                        <tr class="border-b border-scout-900 hover:bg-scout-900/30">
+                                            <td class="py-2 pr-4 text-white font-medium">@s.Season</td>
+                                            <td class="py-2 px-3 text-center text-scout-300">@s.Matches</td>
+                                            <td class="py-2 px-3 text-center @(s.Goals > 0 ? "text-pitch-400 font-semibold" : "text-scout-500")">@s.Goals</td>
+                                            <td class="py-2 px-3 text-center @(s.Assists > 0 ? "text-violet-400 font-semibold" : "text-scout-500")">@s.Assists</td>
+                                            <td class="py-2 px-3 text-center text-scout-300">@(s.Goals + s.Assists)</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                }
+
+                @if (!_player.MarketValue.HasValue && _player.SeasonStats.Count == 0 && _isAdmin)
+                {
+                    <p class="text-sm text-scout-600">
+                        @if (!string.IsNullOrEmpty(_player.TransfermarktUrl))
+                        {
+                            <span>TM ID kayıtlı ama henüz sync edilmemiş. "TM'den Sync Et" butonunu kullanabilirsin.</span>
+                        }
+                        else
+                        {
+                            <span>Bu oyuncuya henüz Transfermarkt ID'si eklenmemiş.</span>
+                        }
+                    </p>
+                }
+            </div>
+        }
 
         <!-- Analyses -->
         <h2 class="section-title mb-6">
@@ -227,7 +349,11 @@ else
     private bool _loading = true;
     private string? _userVote;
     private bool _isLoggedIn;
+    private bool _isAdmin;
     private Guid _userId;
+    private bool _syncing;
+    private bool _syncSuccess;
+    private string? _syncError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -237,6 +363,7 @@ else
         if (_isLoggedIn)
         {
             Guid.TryParse(authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out _userId);
+            _isAdmin = authState.User.IsInRole("Admin");
         }
 
         var result = await PlayerService.GetDetailAsync(Slug, _isLoggedIn ? _userId : null);
@@ -245,6 +372,35 @@ else
 
         if (_player is not null && _isLoggedIn)
             _userVote = await VoteService.GetUserVoteAsync(_player.Id, _userId);
+    }
+
+    private async Task SyncFromTm()
+    {
+        if (_player is null || _syncing) return;
+
+        _syncing = true;
+        _syncSuccess = false;
+        _syncError = null;
+
+        var result = await PlayerService.SyncFromTransfermarktAsync(_player.Id);
+
+        if (result.IsSuccess)
+        {
+            // Sayfayı taze veriyle yenile
+            var fresh = await PlayerService.GetDetailAsync(Slug, _userId == Guid.Empty ? null : _userId);
+            if (fresh.Data is not null) _player = fresh.Data;
+            _syncSuccess = true;
+        }
+        else
+        {
+            _syncError = result.ErrorCode switch
+            {
+                "TRANSFERMARKT_SCRAPE_FAILED" => "Transfermarkt'tan veri çekilemedi. Lütfen daha sonra tekrar dene.",
+                _ => "Sync başarısız: " + result.ErrorCode
+            };
+        }
+
+        _syncing = false;
     }
 
     private async Task Vote(string voteType)
