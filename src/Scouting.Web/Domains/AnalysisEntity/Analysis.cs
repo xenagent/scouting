@@ -46,10 +46,6 @@ public class Analysis : BaseUserTrackModel
         string? strengths = null,
         string? weaknesses = null)
     {
-        if (string.IsNullOrWhiteSpace(videoUrl))
-            return ResultDomain<Analysis>.Error(new MessageItem
-                { Code = ErrorCodes.COMMON_MESSAGE_VALUE_EMPTY, Property = nameof(videoUrl), Table = nameof(Analysis) });
-
         if (string.IsNullOrWhiteSpace(general))
             return ResultDomain<Analysis>.Error(new MessageItem
                 { Code = ErrorCodes.COMMON_MESSAGE_VALUE_EMPTY, Property = nameof(general), Table = nameof(Analysis) });

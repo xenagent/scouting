@@ -79,7 +79,7 @@
                             Transfermarkt URL
                             <span class="text-scout-600 font-normal">(isteğe bağlı — duplicate kontrolü için)</span>
                         </label>
-                        <input @bind="_input.TransfermarktUrl" @bind:event="oninput" @bind="OnTmUrlInput"
+                        <input @bind="_input.TransfermarktUrl" @bind:event="oninput" @onchange="OnTmUrlInput"
                                type="url" placeholder="https://www.transfermarkt.com.tr/.../spieler/990148"
                                class="input" />
                         @if (!string.IsNullOrEmpty(_tmIdPreview))
@@ -99,7 +99,7 @@
                 <h3 class="text-sm font-semibold text-scout-300 uppercase tracking-wider mb-4">Analiz</h3>
                 <div class="space-y-4">
                     <div>
-                        <label class="label">Video Linki *</label>
+                        <label class="label">Video Linki </label>
                         <input @bind="_input.VideoUrl" type="url" placeholder="https://youtube.com/..." class="input" />
                     </div>
                     <div>
@@ -159,7 +159,7 @@
         if (string.IsNullOrWhiteSpace(_input.Name) || _input.Age == 0 ||
             string.IsNullOrWhiteSpace(_input.Position) || string.IsNullOrWhiteSpace(_input.Team) ||
             string.IsNullOrWhiteSpace(_input.League) || string.IsNullOrWhiteSpace(_input.Country) ||
-            string.IsNullOrWhiteSpace(_input.VideoUrl) || string.IsNullOrWhiteSpace(_input.AnalysisContent))
+            string.IsNullOrWhiteSpace(_input.AnalysisContent))
         {
             _error = "Lütfen tüm zorunlu alanları doldurun.";
             return;

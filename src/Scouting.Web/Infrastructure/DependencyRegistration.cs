@@ -28,10 +28,10 @@ public static class DependencyRegistration
         // DbContext — InMemory for development, PostgreSQL for production
         services.AddDbContext<AppDbContext>((provider, options) =>
         {
-            if (env.IsDevelopment())
+            // if (env.IsDevelopment())
                 options.UseInMemoryDatabase("ScoutingDb");
-            else
-                options.UseNpgsql(configuration.GetConnectionString("Default"));
+            // else
+            //     options.UseNpgsql(configuration.GetConnectionString("Default"));
         });
 
         // Entity configurations (used by BaseDbContext to auto-map)
