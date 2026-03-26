@@ -12,11 +12,13 @@ public class AnalysisService : IAnalysisService
 {
     private readonly AppDbContext _db;
     private readonly IAIAnalysisService _ai;
+    private readonly TmSyncQueue _tmQueue;
 
-    public AnalysisService(AppDbContext db, IAIAnalysisService ai)
+    public AnalysisService(AppDbContext db, IAIAnalysisService ai, TmSyncQueue tmQueue)
     {
         _db = db;
         _ai = ai;
+        _tmQueue = tmQueue;
     }
 
     public async Task<ServiceListResult<RecentAnalysisVm>> GetRecentAsync(
@@ -95,6 +97,10 @@ public class AnalysisService : IAnalysisService
             .FirstOrDefaultAsync(p => p.Id == playerId && p.Status == PlayerStatus.Approved, ct);
         if (player is null)
             return ServiceResult.Fail(ErrorCodes.COMMON_MESSAGE_RECORD_NOT_FOUND);
+
+        // Oyuncunun TM verisi varsa, analiz girişi anında güncellemeyi tetikle
+        if (!string.IsNullOrEmpty(player.TransfermarktId))
+            _tmQueue.Enqueue(player.TransfermarktId);
 
         var result = Analysis.Create(
             playerId, input.VideoUrl, input.General, userId,

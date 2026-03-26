@@ -4,99 +4,120 @@ using Scouting.Web.Infrastructure;
 namespace Scouting.Web.Services;
 
 /// <summary>
-/// Her ay 1'inde Transfermarkt ID'si olan tüm oyuncuların
-/// istatistik ve piyasa değerini günceller.
+/// İki sorumluluğu var:
+/// 1. Anlık: TmSyncQueue'yu dinler — analiz girildiğinde ilgili oyuncunun TM verisi hemen güncellenir.
+/// 2. Periyodik: Her 3 ayda bir TM ID'si olan tüm oyuncuları otomatik günceller.
 /// </summary>
 public class TransfermarktSyncJob : BackgroundService
 {
-    private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILogger<TransfermarktSyncJob> _logger;
+    private static readonly TimeSpan PeriodicInterval = TimeSpan.FromDays(90);
 
-    // Her gün uyanır, ama ayın 1'inde mi kontrol eder
-    private static readonly TimeSpan CheckInterval = TimeSpan.FromHours(24);
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly TmSyncQueue _queue;
+    private readonly ILogger<TransfermarktSyncJob> _logger;
 
     public TransfermarktSyncJob(
         IServiceScopeFactory scopeFactory,
+        TmSyncQueue queue,
         ILogger<TransfermarktSyncJob> logger)
     {
         _scopeFactory = scopeFactory;
+        _queue = queue;
         _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // Uygulama ilk açıldığında 30 saniye bekle (DB hazır olsun)
+        // Uygulama açılışında 30 sn bekle
         await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
 
-        using var timer = new PeriodicTimer(CheckInterval);
+        // Anlık kuyruk tüketici + periyodik kontrol paralel çalışır
+        var queueTask      = ConsumeQueueAsync(stoppingToken);
+        var periodicTask   = RunPeriodicSyncAsync(stoppingToken);
 
-        // İlk çalışmada da kontrol et
-        await TrySyncIfDueAsync(stoppingToken);
-
-        while (await timer.WaitForNextTickAsync(stoppingToken))
-        {
-            await TrySyncIfDueAsync(stoppingToken);
-        }
+        await Task.WhenAll(queueTask, periodicTask);
     }
 
-    private async Task TrySyncIfDueAsync(CancellationToken ct)
+    // ── 1. Anlık kuyruk tüketici ─────────────────────────────────────────────
+
+    private async Task ConsumeQueueAsync(CancellationToken ct)
     {
-        // Ayın 1'i değilse geç
-        if (DateTime.UtcNow.Day != 1) return;
-
-        _logger.LogInformation("Transfermarkt aylık sync başlıyor — {Date:yyyy-MM-dd}", DateTime.UtcNow);
-
-        try
+        await foreach (var tmId in _queue.Reader.ReadAllAsync(ct))
         {
-            await RunSyncAsync(ct);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Transfermarkt sync sırasında beklenmeyen hata");
+            try
+            {
+                await SyncSinglePlayerAsync(tmId, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Anlık TM sync başarısız — tmId={TmId}", tmId);
+            }
         }
     }
 
-    private async Task RunSyncAsync(CancellationToken ct)
+    private async Task SyncSinglePlayerAsync(string tmId, CancellationToken ct)
     {
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var tm = scope.ServiceProvider.GetRequiredService<ITransfermarktService>();
 
-        // Transfermarkt ID'si olan ve bu ay henüz sync edilmemiş oyuncular
-        var today = DateTime.UtcNow;
-        var players = await db.Players
-            .Where(p => p.TransfermarktId != null &&
-                        (p.LastTransfermarktSync == null ||
-                         p.LastTransfermarktSync.Value.Year < today.Year ||
-                         p.LastTransfermarktSync.Value.Month < today.Month))
-            .ToListAsync(ct);
+        var player = await db.Players
+            .FirstOrDefaultAsync(p => p.TransfermarktId == tmId, ct);
 
-        _logger.LogInformation("Sync edilecek oyuncu sayısı: {Count}", players.Count);
+        if (player is null) return;
 
-        var successCount = 0;
-        foreach (var player in players)
-        {
-            if (ct.IsCancellationRequested) break;
+        var data = await tm.ScrapePlayerAsync(tmId, ct);
+        if (data is null) return;
 
-            var data = await tm.ScrapePlayerAsync(player.TransfermarktId!, ct);
-            if (data is null)
-            {
-                _logger.LogWarning("Oyuncu verisi alınamadı — tmId={TmId} name={Name}",
-                    player.TransfermarktId, player.Name);
-                continue;
-            }
-
-            player.UpdateFromTransfermarkt(data);
-            successCount++;
-
-            // TM'ye çok hızlı istek atmamak için kısa bekleme
-            await Task.Delay(TimeSpan.FromSeconds(2), ct);
-        }
-
+        player.UpdateFromTransfermarkt(data);
         await db.SaveChangesAsync(ct);
 
-        _logger.LogInformation(
-            "Transfermarkt sync tamamlandı — {Success}/{Total} oyuncu güncellendi",
-            successCount, players.Count);
+        _logger.LogInformation("Anlık TM sync tamamlandı — {Name} (tmId={TmId})", player.Name, tmId);
+    }
+
+    // ── 2. Periyodik 3-aylık sync ────────────────────────────────────────────
+
+    private async Task RunPeriodicSyncAsync(CancellationToken ct)
+    {
+        // Her 24 saatte bir kontrol et; 90 günü geçmiş oyuncuları güncelle
+        using var timer = new PeriodicTimer(TimeSpan.FromHours(24));
+
+        while (await timer.WaitForNextTickAsync(ct))
+        {
+            var cutoff = DateTime.UtcNow.Subtract(PeriodicInterval);
+
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            var due = await db.Players
+                .AsNoTracking()
+                .Where(p => p.TransfermarktId != null &&
+                            (p.LastTransfermarktSync == null ||
+                             p.LastTransfermarktSync < cutoff))
+                .Select(p => p.TransfermarktId!)
+                .ToListAsync(ct);
+
+            if (due.Count == 0) continue;
+
+            _logger.LogInformation("3-aylık TM sync — {Count} oyuncu güncelleniyor", due.Count);
+
+            foreach (var tmId in due)
+            {
+                if (ct.IsCancellationRequested) break;
+
+                try
+                {
+                    await SyncSinglePlayerAsync(tmId, ct);
+                    // TM rate limit için kısa bekleme
+                    await Task.Delay(TimeSpan.FromSeconds(2), ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Periyodik TM sync başarısız — tmId={TmId}", tmId);
+                }
+            }
+
+            _logger.LogInformation("3-aylık TM sync tamamlandı");
+        }
     }
 }
