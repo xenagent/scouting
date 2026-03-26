@@ -41,6 +41,10 @@ builder.Services.AddRazorComponents()
 
 var app = builder.Build();
 
+// Seed data (only in development, InMemory DB)
+if (app.Environment.IsDevelopment())
+    await SeedData.SeedAsync(app.Services);
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
