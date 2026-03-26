@@ -1,90 +1,96 @@
 @page "/players/{Slug}"
-@inject IScoutingApiService Api
+@inject IPlayerService PlayerService
+@inject IVoteService VoteService
 @inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthState
 
-@if (_player is null && !_loading)
+@if (_loading)
 {
-    <PageTitle>Oyuncu Bulunamadı — Scout</PageTitle>
-    <div class="flex flex-col items-center justify-center min-h-[60vh]">
-        <p class="text-6xl mb-4">⚽</p>
-        <h1 class="text-xl text-white font-bold mb-2">Oyuncu Bulunamadı</h1>
-        <a href="/players" class="btn-secondary mt-4">Oyunculara Dön</a>
+    <PageTitle>Yükleniyor...</PageTitle>
+    <div class="max-w-5xl mx-auto px-4 py-10 animate-pulse space-y-4">
+        <div class="h-8 bg-scout-800 rounded w-1/3" />
+        <div class="h-4 bg-scout-800 rounded w-1/4" />
     </div>
 }
 else if (_player is null)
 {
-    <PageTitle>Yükleniyor...</PageTitle>
-    <div class="max-w-5xl mx-auto px-4 py-10 animate-pulse">
-        <div class="h-8 bg-scout-800 rounded w-1/3 mb-4"></div>
-        <div class="h-4 bg-scout-800 rounded w-1/4"></div>
+    <PageTitle>Bulunamadı — Scout</PageTitle>
+    <div class="flex flex-col items-center justify-center min-h-[60vh]">
+        <p class="text-6xl mb-4">⚽</p>
+        <h1 class="text-xl text-white font-bold mb-4">Oyuncu Bulunamadı</h1>
+        <a href="/players" class="btn-secondary">Oyunculara Dön</a>
     </div>
 }
 else
 {
     <PageTitle>@_player.Name — @_player.Position | Scout</PageTitle>
     <HeadContent>
-        <meta name="description" content="@_player.Name analizi: @_player.Age yaşında @_player.Position, @_player.Team (@_player.League). Scout platformunda @_player.Analyses.Count analiz mevcut." />
+        <meta name="description" content="@_player.Name: @_player.Age yaşında @_player.Position, @_player.Team (@_player.League). @_player.Analyses.Count analiz mevcut." />
         <meta property="og:title" content="@_player.Name — @_player.Position | Scout" />
-        <meta property="og:description" content="@_player.Age yaşında @_player.Position | @_player.Team | @_player.League | @_player.Country" />
+        <meta property="og:description" content="@_player.Age yaş | @_player.Team | @_player.League | @_player.Country" />
         @if (!string.IsNullOrEmpty(_player.ImageUrl))
         {
             <meta property="og:image" content="@_player.ImageUrl" />
         }
-        <link rel="canonical" href="@Nav.BaseUri.TrimEnd('/')/@Slug" />
+        <link rel="canonical" href="@Nav.BaseUri.TrimEnd('/')/players/@Slug" />
     </HeadContent>
 
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-        <!-- Player Header -->
+        <!-- Header card -->
         <div class="card mb-8">
             <div class="flex flex-col sm:flex-row gap-6">
-                <!-- Avatar -->
-                <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-xl bg-scout-800 border border-scout-700 flex items-center justify-center shrink-0 overflow-hidden">
+                <div class="w-28 h-28 sm:w-36 sm:h-36 rounded-xl bg-scout-800 border border-scout-700 flex items-center justify-center shrink-0 overflow-hidden">
                     @if (!string.IsNullOrEmpty(_player.ImageUrl))
                     {
                         <img src="@_player.ImageUrl" alt="@_player.Name" class="w-full h-full object-cover" />
                     }
                     else
                     {
-                        <span class="font-display text-5xl text-scout-600">
-                            @_player.Name[0]
-                        </span>
+                        <span class="font-display text-5xl text-scout-600">@_player.Name[0]</span>
                     }
                 </div>
 
-                <!-- Info -->
                 <div class="flex-1">
-                    <div class="flex flex-wrap items-start gap-2 mb-2">
+                    <div class="flex flex-wrap gap-2 mb-2">
                         <span class="badge-position">@_player.Position</span>
                         <span class="badge bg-scout-800 text-scout-400">@_player.Age yaş</span>
                         <span class="badge bg-scout-800 text-scout-400">@_player.Country</span>
                     </div>
-                    <h1 class="font-display text-4xl sm:text-5xl text-white tracking-tight mb-1">@_player.Name.ToUpperInvariant()</h1>
+                    <h1 class="font-display text-4xl sm:text-5xl text-white tracking-tight mb-1">
+                        @_player.Name.ToUpperInvariant()
+                    </h1>
                     <p class="text-scout-400 text-lg">@_player.Team <span class="text-scout-600">·</span> @_player.League</p>
 
-                    <!-- Score & Votes -->
                     <div class="flex flex-wrap items-center gap-4 mt-5 pt-5 border-t border-scout-800">
-                        <div class="flex items-center gap-3">
-                            <button @onclick='() => Vote("Up")' class="@(_userVote == "Up" ? "vote-up-active" : "vote-up")">
-                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 4l8 8H4l8-8z"/>
-                                </svg>
-                                @_player.UpvoteCount
-                            </button>
-                            <button @onclick='() => Vote("Down")' class="@(_userVote == "Down" ? "vote-down-active" : "vote-down")">
-                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 20L4 12h16l-8 8z"/>
-                                </svg>
-                                @_player.DownvoteCount
-                            </button>
-                        </div>
+                        @if (_isLoggedIn)
+                        {
+                            <div class="flex items-center gap-2">
+                                <button @onclick='() => Vote("Up")'
+                                        class="@(_userVote == "Up" ? "vote-up-active" : "vote-up")">
+                                    ▲ @_player.UpvoteCount
+                                </button>
+                                <button @onclick='() => Vote("Down")'
+                                        class="@(_userVote == "Down" ? "vote-down-active" : "vote-down")">
+                                    ▼ @_player.DownvoteCount
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="flex items-center gap-3 text-scout-500 text-sm">
+                                <span>▲ @_player.UpvoteCount</span>
+                                <span>▼ @_player.DownvoteCount</span>
+                                <a href="/login" class="text-pitch-500 hover:text-pitch-400">Oy vermek için giriş yap</a>
+                            </div>
+                        }
                         <div class="text-scout-400 text-sm">
-                            Toplam Skor: <span class="text-white font-bold">@_player.Score</span>
+                            Skor: <span class="text-white font-bold">@_player.Score</span>
                         </div>
                         <div class="text-scout-400 text-sm">
                             <a href="/scouters/@_player.SuggestedByUsername" class="hover:text-pitch-400 transition-colors">
                                 @@_player.SuggestedByUsername
-                            </a> tarafından önerildi
+                            </a> önerdi
                         </div>
                     </div>
                 </div>
@@ -92,90 +98,100 @@ else
         </div>
 
         <!-- Analyses -->
-        <div>
-            <h2 class="section-title mb-6">
-                <span class="text-violet-500 mr-2">✦</span>Analizler
-                <span class="text-scout-600 text-base font-normal ml-2">(@_player.Analyses.Count)</span>
-            </h2>
+        <h2 class="section-title mb-6">
+            <span class="text-violet-500 mr-2">✦</span>Analizler
+            <span class="text-scout-600 text-base font-normal ml-2">(@_player.Analyses.Count)</span>
+        </h2>
 
-            @if (_player.Analyses.Count == 0)
-            {
-                <div class="card text-center py-10 text-scout-500">
-                    Henüz onaylı analiz bulunmuyor.
-                </div>
-            }
-            else
-            {
-                <div class="space-y-5">
-                    @foreach (var analysis in _player.Analyses)
-                    {
-                        <div class="card">
-                            <div class="flex items-center justify-between mb-4">
-                                <a href="/scouters/@analysis.ScoutUsername" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                                    <div class="w-8 h-8 rounded-full bg-pitch-950 border border-pitch-800 flex items-center justify-center">
-                                        <span class="text-pitch-500 font-bold text-xs">@analysis.ScoutUsername[0..1].ToUpper()</span>
-                                    </div>
-                                    <span class="text-sm font-semibold text-white">@@analysis.ScoutUsername</span>
-                                </a>
-                                <div class="flex items-center gap-2">
-                                    @if (analysis.AIScore.HasValue)
-                                    {
-                                        <span class="ai-score">AI @analysis.AIScore.Value.ToString("0.0")</span>
-                                    }
-                                    <span class="text-xs text-scout-600">@analysis.CreatedAt.ToString("dd MMM yyyy")</span>
+        @if (_player.Analyses.Count == 0)
+        {
+            <div class="card text-center py-10 text-scout-500">Henüz onaylı analiz yok.</div>
+        }
+        else
+        {
+            <div class="space-y-5">
+                @foreach (var a in _player.Analyses)
+                {
+                    <div class="card">
+                        <div class="flex items-center justify-between mb-4">
+                            <a href="/scouters/@a.ScoutUsername" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                                <div class="w-8 h-8 rounded-full bg-pitch-950 border border-pitch-800 flex items-center justify-center">
+                                    <span class="text-pitch-500 font-bold text-xs">@a.ScoutUsername[0..1].ToUpper()</span>
                                 </div>
-                            </div>
-
-                            @if (!string.IsNullOrEmpty(analysis.AISummary))
-                            {
-                                <div class="bg-violet-950/30 border border-violet-800/40 rounded-lg p-3 mb-4">
-                                    <p class="text-xs text-violet-400 font-medium mb-1">AI Özeti</p>
-                                    <p class="text-sm text-violet-200">@analysis.AISummary</p>
-                                </div>
-                            }
-
-                            <div class="prose prose-sm prose-invert max-w-none mb-4">
-                                <p class="text-scout-300 leading-relaxed whitespace-pre-line">@analysis.Content</p>
-                            </div>
-
-                            <a href="@analysis.VideoUrl" target="_blank" rel="noopener noreferrer"
-                               class="inline-flex items-center gap-2 text-sm text-pitch-400 hover:text-pitch-300 transition-colors">
-                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M8 5v14l11-7L8 5z"/>
-                                </svg>
-                                Videoyu İzle
+                                <span class="text-sm font-semibold text-white">@@@a.ScoutUsername</span>
                             </a>
+                            <div class="flex items-center gap-2">
+                                @if (a.AIScore.HasValue)
+                                {
+                                    <span class="ai-score">AI @a.AIScore.Value.ToString("0.0")</span>
+                                }
+                                <span class="text-xs text-scout-600">@a.CreatedAt.ToString("dd MMM yyyy")</span>
+                            </div>
                         </div>
-                    }
-                </div>
-            }
-        </div>
-
+                        @if (!string.IsNullOrEmpty(a.AISummary))
+                        {
+                            <div class="bg-violet-950/30 border border-violet-800/40 rounded-lg p-3 mb-4">
+                                <p class="text-xs text-violet-400 font-medium mb-1">AI Özeti</p>
+                                <p class="text-sm text-violet-200">@a.AISummary</p>
+                            </div>
+                        }
+                        <p class="text-scout-300 leading-relaxed text-sm whitespace-pre-line mb-4">@a.Content</p>
+                        <a href="@a.VideoUrl" target="_blank" rel="noopener noreferrer"
+                           class="inline-flex items-center gap-2 text-sm text-pitch-400 hover:text-pitch-300 transition-colors">
+                            ▶ Videoyu İzle
+                        </a>
+                    </div>
+                }
+            </div>
+        }
     </div>
 }
 
 @code {
     [Parameter] public string Slug { get; set; } = default!;
 
-    private PlayerDetail? _player;
+    private PlayerDetailVm? _player;
     private bool _loading = true;
     private string? _userVote;
+    private bool _isLoggedIn;
+    private Guid _userId;
 
     protected override async Task OnInitializedAsync()
     {
-        var result = await Api.GetPlayerDetailAsync(Slug);
+        var authState = await AuthState.GetAuthenticationStateAsync();
+        _isLoggedIn = authState.User.Identity?.IsAuthenticated ?? false;
+
+        if (_isLoggedIn)
+        {
+            var idClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (Guid.TryParse(idClaim, out var id))
+            {
+                _userId = id;
+                _userVote = await VoteService.GetUserVoteAsync(
+                    Guid.Empty, // placeholder; filled after player loads
+                    _userId);
+            }
+        }
+
+        var result = await PlayerService.GetDetailAsync(Slug);
         _player = result.Data;
         _loading = false;
+
+        if (_player is not null && _isLoggedIn)
+            _userVote = await VoteService.GetUserVoteAsync(_player.Id, _userId);
     }
 
     private async Task Vote(string voteType)
     {
-        if (_player is null) return;
-        await Api.VoteAsync(_player.Id, voteType);
+        if (_player is null || !_isLoggedIn) return;
 
-        // Optimistic update
+        await VoteService.VoteAsync(_player.Id, _userId, voteType);
+
+        // Optimistic UI update
         if (_userVote == voteType)
         {
+            if (voteType == "Up") { _player.UpvoteCount--; _player.Score--; }
+            else { _player.DownvoteCount--; _player.Score++; }
             _userVote = null;
         }
         else

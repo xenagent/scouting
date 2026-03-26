@@ -1,11 +1,11 @@
 @page "/"
-@inject IScoutingApiService Api
+@inject IPlayerService PlayerService
+@inject IAnalysisService AnalysisService
+@inject IScouterService ScouterService
 
 <PageTitle>Scout — Futbol Scouting Platformu</PageTitle>
 <HeadContent>
     <meta name="description" content="Kaliteli futbol scouting verisi. En iyi oyuncuları keşfet, analiz et ve oy ver." />
-    <meta property="og:title" content="Scout — Futbol Scouting Platformu" />
-    <meta property="og:description" content="Kaliteli futbol scouting verisi. En iyi oyuncuları keşfet, analiz et ve oy ver." />
 </HeadContent>
 
 <!-- Hero -->
@@ -24,7 +24,6 @@
             </h1>
             <p class="text-scout-400 text-lg sm:text-xl leading-relaxed mb-8 max-w-xl">
                 Herkes öneri ekleyebilir, ancak yalnızca kaliteli içerikler yayına alınır.
-                Gerçek oyuncular, gerçek analizler.
             </p>
             <div class="flex flex-wrap gap-3">
                 <a href="/players" class="btn-primary">Oyuncuları Keşfet</a>
@@ -39,70 +38,38 @@
     <!-- Top Players -->
     <section>
         <div class="flex items-center justify-between mb-6">
-            <h2 class="section-title">
-                <span class="text-pitch-500 mr-2">↑</span>En Çok Oy Alan Oyuncular
-            </h2>
+            <h2 class="section-title"><span class="text-pitch-500 mr-2">↑</span>En Çok Oy Alan</h2>
             <a href="/players" class="text-sm text-scout-400 hover:text-white transition-colors">Tümünü gör →</a>
         </div>
-
         @if (_topPlayers is null)
         {
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                @for (int i = 0; i < 5; i++)
-                {
-                    <div class="card animate-pulse">
-                        <div class="h-32 bg-scout-800 rounded-lg mb-3"></div>
-                        <div class="h-4 bg-scout-800 rounded w-3/4 mb-2"></div>
-                        <div class="h-3 bg-scout-800 rounded w-1/2"></div>
-                    </div>
-                }
+                @for (int i = 0; i < 5; i++) { <div class="card h-48 animate-pulse bg-scout-800/50" /> }
             </div>
         }
         else
         {
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                @foreach (var player in _topPlayers)
-                {
-                    <PlayerCard Player="player" />
-                }
+                @foreach (var p in _topPlayers) { <PlayerCard Player="p" /> }
             </div>
         }
     </section>
 
-    <!-- Recent Analyses + Top Scouters -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
         <!-- Recent Analyses -->
         <div class="lg:col-span-2">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="section-title">
-                    <span class="text-violet-500 mr-2">✦</span>Son Analizler
-                </h2>
-            </div>
-
+            <h2 class="section-title mb-6"><span class="text-violet-500 mr-2">✦</span>Son Analizler</h2>
             @if (_recentAnalyses is null)
             {
                 <div class="space-y-4">
-                    @for (int i = 0; i < 4; i++)
-                    {
-                        <div class="card animate-pulse flex gap-3">
-                            <div class="w-12 h-12 bg-scout-800 rounded-lg shrink-0"></div>
-                            <div class="flex-1">
-                                <div class="h-3 bg-scout-800 rounded w-1/3 mb-2"></div>
-                                <div class="h-4 bg-scout-800 rounded w-3/4 mb-2"></div>
-                                <div class="h-3 bg-scout-800 rounded w-full"></div>
-                            </div>
-                        </div>
-                    }
+                    @for (int i = 0; i < 4; i++) { <div class="card h-24 animate-pulse bg-scout-800/50" /> }
                 </div>
             }
             else
             {
                 <div class="space-y-4">
-                    @foreach (var analysis in _recentAnalyses)
-                    {
-                        <AnalysisCard Analysis="analysis" />
-                    }
+                    @foreach (var a in _recentAnalyses) { <AnalysisCard Analysis="a" /> }
                 </div>
             }
         </div>
@@ -110,48 +77,29 @@
         <!-- Top Scouters -->
         <div>
             <div class="flex items-center justify-between mb-6">
-                <h2 class="section-title">
-                    <span class="text-yellow-500 mr-2">★</span>Top Scoutlar
-                </h2>
+                <h2 class="section-title"><span class="text-yellow-500 mr-2">★</span>Top Scoutlar</h2>
                 <a href="/scouters" class="text-sm text-scout-400 hover:text-white transition-colors">Tümü →</a>
             </div>
-
             @if (_topScouters is null)
             {
                 <div class="space-y-3">
-                    @for (int i = 0; i < 5; i++)
-                    {
-                        <div class="card animate-pulse flex items-center gap-3">
-                            <div class="w-10 h-10 bg-scout-800 rounded-full shrink-0"></div>
-                            <div class="flex-1">
-                                <div class="h-3 bg-scout-800 rounded w-2/3 mb-1"></div>
-                                <div class="h-2.5 bg-scout-800 rounded w-1/3"></div>
-                            </div>
-                        </div>
-                    }
+                    @for (int i = 0; i < 5; i++) { <div class="card h-14 animate-pulse bg-scout-800/50" /> }
                 </div>
             }
             else
             {
                 <div class="space-y-2">
                     @{int rank = 1;}
-                    @foreach (var scouter in _topScouters)
+                    @foreach (var s in _topScouters)
                     {
-                        <a href="/scouters/@scouter.Username" class="card-hover flex items-center gap-3">
+                        <a href="/scouters/@s.Username" class="card-hover flex items-center gap-3">
                             <span class="text-lg font-display text-scout-600 w-6 text-center shrink-0">@rank</span>
                             <div class="w-9 h-9 rounded-full bg-pitch-950 border border-pitch-800 flex items-center justify-center shrink-0">
-                                @if (!string.IsNullOrEmpty(scouter.AvatarUrl))
-                                {
-                                    <img src="@scouter.AvatarUrl" class="w-9 h-9 rounded-full object-cover" alt="@scouter.Username" />
-                                }
-                                else
-                                {
-                                    <span class="text-pitch-500 font-bold text-sm">@scouter.Username[0..1].ToUpper()</span>
-                                }
+                                <span class="text-pitch-500 font-bold text-sm">@s.Username[0..1].ToUpper()</span>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm font-semibold text-white truncate">@@scouter.Username</p>
-                                <p class="text-xs text-scout-500">@scouter.ApprovedAnalysisCount analiz · @scouter.FollowerCount takipçi</p>
+                                <p class="text-sm font-semibold text-white truncate">@@@s.Username</p>
+                                <p class="text-xs text-scout-500">@s.ApprovedAnalysisCount analiz · @s.FollowerCount takipçi</p>
                             </div>
                         </a>
                         rank++;
@@ -161,24 +109,21 @@
         </div>
 
     </div>
-
 </div>
 
 @code {
-    private List<PlayerListItem>? _topPlayers;
-    private List<RecentAnalysis>? _recentAnalyses;
-    private List<ScouterItem>? _topScouters;
+    private List<PlayerListItemVm>? _topPlayers;
+    private List<RecentAnalysisVm>? _recentAnalyses;
+    private List<ScouterVm>? _topScouters;
 
     protected override async Task OnInitializedAsync()
     {
-        var playersTask = Api.GetTopPlayersAsync(10);
-        var analysesTask = Api.GetRecentAnalysesAsync(6);
-        var scoutersTask = Api.GetTopScoutersAsync(8);
-
-        await Task.WhenAll(playersTask, analysesTask, scoutersTask);
-
-        _topPlayers = (await playersTask).Data;
-        _recentAnalyses = (await analysesTask).Data;
-        _topScouters = (await scoutersTask).Data;
+        var t1 = PlayerService.GetTopAsync(10);
+        var t2 = AnalysisService.GetRecentAsync(6);
+        var t3 = ScouterService.GetTopAsync(8);
+        await Task.WhenAll(t1, t2, t3);
+        _topPlayers = (await t1).Data;
+        _recentAnalyses = (await t2).Data;
+        _topScouters = (await t3).Data;
     }
 }

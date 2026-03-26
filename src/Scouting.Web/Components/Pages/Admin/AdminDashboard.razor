@@ -1,5 +1,6 @@
 @page "/admin"
-@inject IScoutingApiService Api
+@attribute [Authorize(Roles = "Admin")]
+@inject IPlayerService PlayerService
 @rendermode InteractiveServer
 
 <PageTitle>Admin — Scout</PageTitle>
@@ -112,7 +113,7 @@
 </div>
 
 @code {
-    private List<PendingPlayerItem>? _pendingPlayers;
+    private List<PendingPlayerVm>? _pendingPlayers;
     private bool _loading = true;
     private string _activeTab = "pending";
     private Guid? _processingId;
@@ -123,7 +124,7 @@
     private async Task LoadPending()
     {
         _loading = true;
-        var result = await Api.GetPendingPlayersAsync();
+        var result = await PlayerService.GetPendingAsync(1, 50);
         _pendingPlayers = result.Data;
         _loading = false;
     }
@@ -131,7 +132,7 @@
     private async Task Approve(Guid playerId)
     {
         _processingId = playerId;
-        await Api.ApprovePlayerAsync(playerId);
+        await PlayerService.ApproveAsync(playerId);
         _pendingPlayers?.RemoveAll(p => p.Id == playerId);
         _processingId = null;
     }
@@ -142,7 +143,7 @@
         if (string.IsNullOrWhiteSpace(reason)) return;
 
         _processingId = playerId;
-        await Api.RejectPlayerAsync(playerId, reason);
+        await PlayerService.RejectAsync(playerId, reason);
         _pendingPlayers?.RemoveAll(p => p.Id == playerId);
         _rejectReasons.Remove(playerId);
         _processingId = null;

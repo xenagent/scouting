@@ -1,5 +1,5 @@
 @page "/scouters"
-@inject IScoutingApiService Api
+@inject IScouterService ScouterService
 
 <PageTitle>Scoutlar — Scout</PageTitle>
 <HeadContent>
@@ -86,11 +86,11 @@
 </div>
 
 @code {
-    private List<ScouterItem>? _scouters;
+    private List<ScouterVm>? _scouters;
 
     protected override async Task OnInitializedAsync()
     {
-        var result = await Api.GetTopScoutersAsync(50);
+        var result = await ScouterService.GetTopAsync(50);
         _scouters = result.Data;
     }
 
