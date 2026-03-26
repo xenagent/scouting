@@ -92,7 +92,7 @@ else
                         </div>
                         <div class="text-scout-400 text-sm">
                             <a href="/scouters/@_player.SuggestedByUsername" class="hover:text-pitch-400 transition-colors">
-                                @@_player.SuggestedByUsername
+                                @("@" + _player.SuggestedByUsername)
                             </a> önerdi
                         </div>
                         @if (_isLoggedIn)

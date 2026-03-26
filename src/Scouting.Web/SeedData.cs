@@ -30,21 +30,19 @@ public static class SeedData
         db.Users.AddRange(admin, emre, mehmet, ahmet, zeynep);
 
         // ── Oyuncular (approved) ──────────────────────────────────────────────
+        // TM ID'leri sadece doğrulanmış oyuncular için eklenir.
+        // Arda, Kenan, Ferdi gibi oyuncuların gerçek TM ID'leri bilinmiyor;
+        // admin panel üzerinden "TM'den Sync Et" ile eklenebilir.
         var arda = MakePlayer("Arda Güler",           19, PlayerPosition.CAM,
             "Real Madrid", "La Liga", "Türkiye", emre.Id,
-            imageUrl: "https://img.a.transfermarkt.technology/portrait/header/887080-1695304207.jpg",
-            tmId: "887080", tmUrl: "https://www.transfermarkt.com.tr/arda-guler/profil/spieler/887080",
             marketValue: 80m);
 
         var kenan = MakePlayer("Kenan Yıldız",        19, PlayerPosition.LW,
             "Juventus", "Serie A", "Türkiye", emre.Id,
-            imageUrl: "https://img.a.transfermarkt.technology/portrait/header/920455-1724057509.jpg",
-            tmId: "920455", tmUrl: "https://www.transfermarkt.com.tr/kenan-yildiz/profil/spieler/920455",
             marketValue: 40m);
 
         var ferdi = MakePlayer("Ferdi Kadıoğlu",      24, PlayerPosition.LB,
             "Brighton", "Premier League", "Türkiye", mehmet.Id,
-            imageUrl: "https://img.a.transfermarkt.technology/portrait/header/547763-1692005193.jpg",
             marketValue: 35m);
 
         var semih = MakePlayer("Semih Kılıçsoy",      19, PlayerPosition.ST,
