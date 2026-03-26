@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using scommon;
+using Scouting.Web;
+using Scouting.Web.DbSettings;
 using Scouting.Web.Infrastructure;
 
 namespace Scouting.Web.Domains.UserEntity;
@@ -17,8 +18,7 @@ public class UserConfiguration : BaseConfiguration<User>
             .HasMaxLength(16)
             .HasConversion(e => e.ToString(), e => Enum.Parse<UserRole>(e))
             .IsRequired();
-        model.HasIndex(e => e.Email).IsUnique();
-        model.HasIndex(e => e.Username).IsUnique();
+
         base.Map(model);
     }
 

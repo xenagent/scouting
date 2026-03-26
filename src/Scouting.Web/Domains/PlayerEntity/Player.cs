@@ -1,5 +1,5 @@
 using System.Text.Json;
-using scommon;
+using Scouting.Web;
 using Scouting.Web.Services;
 using Scouting.Web.Shared;
 
@@ -119,13 +119,13 @@ public class Player : BaseUserTrackModel
         LastTransfermarktSync = DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// SeasonStatsJson alanını deserialize ederek döner.
-    /// </summary>
-    public List<PlayerSeasonStats> GetSeasonStats()
-        => string.IsNullOrEmpty(SeasonStatsJson)
-            ? []
-            : JsonSerializer.Deserialize<List<PlayerSeasonStats>>(SeasonStatsJson) ?? [];
+    // /// <summary>
+    // /// SeasonStatsJson alanını deserialize ederek döner.
+    // /// </summary>
+    // public List<PlayerSeasonStats> GetSeasonStats()
+    //     => string.IsNullOrEmpty(SeasonStatsJson)
+    //         ? []
+    //         : JsonSerializer.Deserialize<List<PlayerSeasonStats>>(SeasonStatsJson) ?? [];
 
     private static string GenerateSlug(string name, Guid id)
     {

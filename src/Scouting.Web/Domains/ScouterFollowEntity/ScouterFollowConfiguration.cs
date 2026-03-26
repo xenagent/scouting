@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using scommon;
+using Scouting.Web;
+using Scouting.Web.DbSettings;
 using Scouting.Web.Infrastructure;
 
 namespace Scouting.Web.Domains.ScouterFollowEntity;

@@ -1,4 +1,4 @@
-using scommon;
+using Scouting.Web;
 using Scouting.Web.Shared;
 
 namespace Scouting.Web.Domains.AnalysisEntity;

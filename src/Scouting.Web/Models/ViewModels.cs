@@ -35,7 +35,7 @@ public class PlayerDetailVm
     public int DownvoteCount { get; set; }
     public string SuggestedByUsername { get; set; } = "";
     public DateTime CreatedAt { get; set; }
-    public List<AnalysisVm> Analyses { get; set; } = [];
+    public List<AnalysisVm> Analyses { get; set; } =  [];
 }
 
 public class AnalysisVm
@@ -44,7 +44,7 @@ public class AnalysisVm
     public string VideoUrl { get; set; } = "";
 
     // Sections
-    public string Content { get; set; } = "";           // General (required)
+    public string Content { get; set; } = ""; // General (required)
     public string? TechnicalContent { get; set; }
     public string? TacticalContent { get; set; }
     public string? PhysicalContent { get; set; }
@@ -121,7 +121,7 @@ public class ScouterVm
 public class ScouterProfileVm : ScouterVm
 {
     public bool IsFollowedByViewer { get; set; }
-    public List<ScouterAnalysisVm> RecentAnalyses { get; set; } = [];
+    public List<ScouterAnalysisVm> RecentAnalyses { get; set; } = new();
 }
 
 public class ScouterAnalysisVm

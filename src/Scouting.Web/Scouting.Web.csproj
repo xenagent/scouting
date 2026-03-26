@@ -25,10 +25,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.4" />
     <!-- HTML Scraping -->
     <PackageReference Include="HtmlAgilityPack" Version="1.11.71" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\libs\scommon\scommon\scommon.csproj" />
+    <PackageReference Include="PagedList.Core" Version="1.17.4" />
   </ItemGroup>
 
   <!-- Tailwind CSS build -->

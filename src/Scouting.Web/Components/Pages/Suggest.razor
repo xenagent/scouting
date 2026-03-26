@@ -79,7 +79,7 @@
                             Transfermarkt URL
                             <span class="text-scout-600 font-normal">(isteğe bağlı — duplicate kontrolü için)</span>
                         </label>
-                        <input @bind="_input.TransfermarktUrl" @bind:event="oninput" @oninput="OnTmUrlInput"
+                        <input @bind="_input.TransfermarktUrl" @bind:event="oninput" @bind="OnTmUrlInput"
                                type="url" placeholder="https://www.transfermarkt.com.tr/.../spieler/990148"
                                class="input" />
                         @if (!string.IsNullOrEmpty(_tmIdPreview))

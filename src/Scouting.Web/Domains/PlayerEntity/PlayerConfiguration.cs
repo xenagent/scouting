@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using scommon;
+using Scouting.Web;
+using Scouting.Web.DbSettings;
 using Scouting.Web.Infrastructure;
 
 namespace Scouting.Web.Domains.PlayerEntity;
@@ -27,11 +28,7 @@ public class PlayerConfiguration : BaseConfiguration<Player>
         model.Property(e => e.TransfermarktUrl).HasMaxLength(512);
         model.Property(e => e.Height).HasMaxLength(16);
         model.Property(e => e.PreferredFoot).HasMaxLength(16);
-        model.Property(e => e.SeasonStatsJson).HasColumnType("text");
-        model.HasIndex(e => e.Slug).IsUnique();
-        model.HasIndex(e => e.TransfermarktId).IsUnique().HasFilter("\"TransfermarktId\" IS NOT NULL");
-        model.HasIndex(e => e.Status);
-        model.HasIndex(e => e.Score);
+
         base.Map(model);
     }
 
