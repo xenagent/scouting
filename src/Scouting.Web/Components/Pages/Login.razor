@@ -1,0 +1,33 @@
+@page "/login"
+
+<PageTitle>Giriş — Scout</PageTitle>
+
+<div class="max-w-sm mx-auto px-4 py-16">
+
+    <div class="text-center mb-8">
+        <span class="font-display text-3xl text-white">SCOUT</span>
+        <p class="text-scout-400 mt-2">Hesabınıza giriş yapın</p>
+    </div>
+
+    <div class="card">
+        <form method="post" action="/account/login" class="space-y-4">
+            <AntiforgeryToken />
+            <input type="hidden" name="returnUrl" value="/" />
+            <div>
+                <label class="label">E-posta</label>
+                <input name="email" type="email" placeholder="ornek@email.com" class="input" required />
+            </div>
+            <div>
+                <label class="label">Şifre</label>
+                <input name="password" type="password" placeholder="••••••••" class="input" required />
+            </div>
+
+            <button type="submit" class="btn-primary w-full">Giriş Yap</button>
+        </form>
+
+        <p class="text-center text-sm text-scout-500 mt-4">
+            Hesabın yok mu?
+            <a href="/register" class="text-pitch-400 hover:text-pitch-300">Kayıt ol</a>
+        </p>
+    </div>
+</div>

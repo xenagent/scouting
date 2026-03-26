@@ -1,0 +1,48 @@
+@using Scouting.Web.Models
+
+<a href="/players/@Player.Slug" class="card-hover block group">
+    <!-- Image -->
+    <div class="aspect-[3/2] rounded-lg bg-scout-800 mb-3 overflow-hidden flex items-center justify-center relative">
+        @if (!string.IsNullOrEmpty(Player.ImageUrl))
+        {
+            <img src="@Player.ImageUrl" alt="@Player.Name"
+                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+        }
+        else
+        {
+            <span class="font-display text-5xl text-scout-700">@Player.Name[0]</span>
+        }
+
+        <!-- Position badge overlay -->
+        <div class="absolute top-2 left-2">
+            <span class="badge-position">@Player.Position</span>
+        </div>
+
+        <!-- Score overlay -->
+        <div class="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5">
+            <svg class="w-3 h-3 text-pitch-400" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 4l8 8H4l8-8z"/>
+            </svg>
+            <span class="text-xs font-bold text-white">@Player.Score</span>
+        </div>
+    </div>
+
+    <!-- Info -->
+    <div>
+        <h3 class="font-semibold text-white truncate group-hover:text-pitch-400 transition-colors">
+            @Player.Name
+        </h3>
+        <p class="text-xs text-scout-400 truncate">@Player.Team · @Player.League</p>
+        <div class="flex items-center gap-2 mt-2">
+            <span class="text-xs text-scout-600">@Player.Age yaş</span>
+            @if (Player.AnalysisCount > 0)
+            {
+                <span class="text-xs text-scout-600">· @Player.AnalysisCount analiz</span>
+            }
+        </div>
+    </div>
+</a>
+
+@code {
+    [Parameter, EditorRequired] public PlayerListItemVm Player { get; set; } = default!;
+}

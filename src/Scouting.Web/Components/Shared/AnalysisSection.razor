@@ -1,0 +1,10 @@
+<div class="bg-scout-800/40 rounded-lg p-3">
+    <p class="text-xs text-scout-500 font-medium mb-1.5">@Icon @Label</p>
+    <p class="text-sm text-scout-300 leading-relaxed">@Content</p>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = default!;
+    [Parameter, EditorRequired] public string Content { get; set; } = default!;
+    [Parameter] public string Icon { get; set; } = "";
+}

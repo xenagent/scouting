@@ -1,0 +1,66 @@
+@inject NavigationManager Nav
+
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized Context="auth">
+            <header class="sticky top-0 z-50 border-b border-scout-800/80 bg-scout-950/80 backdrop-blur-sm">
+                <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-6">
+                    <a href="/" class="flex items-center gap-1.5 shrink-0">
+                        <svg class="w-6 h-6 text-pitch-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 2 L12 22 M2 12 L22 12" opacity="0.4"/>
+                        </svg>
+                        <span class="font-display text-xl text-white tracking-wider">SCOUT</span>
+                    </a>
+                    <div class="hidden sm:flex items-center gap-6">
+                        <a href="/players" class="@LinkClass("/players")">Oyuncular</a>
+                        <a href="/scouters" class="@LinkClass("/scouters")">Scoutlar</a>
+                        @if (auth.User.IsInRole("Admin"))
+                        {
+                            <a href="/admin" class="@LinkClass("/admin") text-yellow-500">Admin</a>
+                        }
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <a href="/analysis/new" class="btn-primary text-xs px-3 py-2">+ Analiz Yaz</a>
+                        <a href="/suggest" class="btn-secondary text-xs px-3 py-2">+ Öneri</a>
+                        <div class="flex items-center gap-2">
+                            <a href="/scouters/@auth.User.Identity?.Name" class="text-sm text-scout-300 hover:text-white transition-colors">
+                                @@@(auth.User.Identity?.Name ?? "")
+                            </a>
+                            <a href="/account/logout" class="text-xs text-scout-600 hover:text-scout-400 transition-colors">çıkış</a>
+                        </div>
+                    </div>
+                </nav>
+            </header>
+        </Authorized>
+        <NotAuthorized>
+            <header class="sticky top-0 z-50 border-b border-scout-800/80 bg-scout-950/80 backdrop-blur-sm">
+                <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-6">
+                    <a href="/" class="flex items-center gap-1.5 shrink-0">
+                        <svg class="w-6 h-6 text-pitch-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 2 L12 22 M2 12 L22 12" opacity="0.4"/>
+                        </svg>
+                        <span class="font-display text-xl text-white tracking-wider">SCOUT</span>
+                    </a>
+                    <div class="hidden sm:flex items-center gap-6">
+                        <a href="/players" class="@LinkClass("/players")">Oyuncular</a>
+                        <a href="/scouters" class="@LinkClass("/scouters")">Scoutlar</a>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <a href="/suggest" class="btn-primary text-xs px-3 py-2">+ Öneri Ekle</a>
+                        <a href="/login" class="btn-secondary text-xs px-3 py-2">Giriş</a>
+                    </div>
+                </nav>
+            </header>
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+
+@code {
+    private string LinkClass(string path)
+    {
+        var current = new Uri(Nav.Uri).AbsolutePath;
+        return current.StartsWith(path, StringComparison.OrdinalIgnoreCase) ? "nav-link-active" : "nav-link";
+    }
+}

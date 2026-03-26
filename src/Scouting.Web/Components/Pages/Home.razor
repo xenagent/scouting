@@ -1,0 +1,129 @@
+@page "/"
+@inject IPlayerService PlayerService
+@inject IAnalysisService AnalysisService
+@inject IScouterService ScouterService
+
+<PageTitle>Scout — Futbol Scouting Platformu</PageTitle>
+<HeadContent>
+    <meta name="description" content="Kaliteli futbol scouting verisi. En iyi oyuncuları keşfet, analiz et ve oy ver." />
+</HeadContent>
+
+<!-- Hero -->
+<section class="relative overflow-hidden py-16 sm:py-24">
+    <div class="absolute inset-0 bg-gradient-to-b from-pitch-950/20 to-transparent pointer-events-none" />
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <div class="max-w-2xl">
+            <div class="inline-flex items-center gap-2 rounded-full bg-pitch-950 border border-pitch-800 px-3 py-1 mb-6">
+                <span class="w-1.5 h-1.5 rounded-full bg-pitch-500 animate-pulse"></span>
+                <span class="text-xs text-pitch-400 font-medium">Faz 1 — Aktif</span>
+            </div>
+            <h1 class="font-display text-5xl sm:text-7xl text-white leading-none tracking-tight mb-4">
+                KALİTELİ<br/>
+                <span class="text-pitch-500">SCOUTING</span><br/>
+                VERİSİ
+            </h1>
+            <p class="text-scout-400 text-lg sm:text-xl leading-relaxed mb-8 max-w-xl">
+                Herkes öneri ekleyebilir, ancak yalnızca kaliteli içerikler yayına alınır.
+            </p>
+            <div class="flex flex-wrap gap-3">
+                <a href="/players" class="btn-primary">Oyuncuları Keşfet</a>
+                <a href="/suggest" class="btn-secondary">Oyuncu Öner</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 space-y-16">
+
+    <!-- Top Players -->
+    <section>
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="section-title"><span class="text-pitch-500 mr-2">↑</span>En Çok Oy Alan</h2>
+            <a href="/players" class="text-sm text-scout-400 hover:text-white transition-colors">Tümünü gör →</a>
+        </div>
+        @if (_topPlayers is null)
+        {
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                @for (int i = 0; i < 5; i++) { <div class="card h-48 animate-pulse bg-scout-800/50" /> }
+            </div>
+        }
+        else
+        {
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                @foreach (var p in _topPlayers) { <PlayerCard Player="p" /> }
+            </div>
+        }
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- Recent Analyses -->
+        <div class="lg:col-span-2">
+            <h2 class="section-title mb-6"><span class="text-violet-500 mr-2">✦</span>Son Analizler</h2>
+            @if (_recentAnalyses is null)
+            {
+                <div class="space-y-4">
+                    @for (int i = 0; i < 4; i++) { <div class="card h-24 animate-pulse bg-scout-800/50" /> }
+                </div>
+            }
+            else
+            {
+                <div class="space-y-4">
+                    @foreach (var a in _recentAnalyses) { <AnalysisCard Analysis="a" /> }
+                </div>
+            }
+        </div>
+
+        <!-- Top Scouters -->
+        <div>
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="section-title"><span class="text-yellow-500 mr-2">★</span>Top Scoutlar</h2>
+                <a href="/scouters" class="text-sm text-scout-400 hover:text-white transition-colors">Tümü →</a>
+            </div>
+            @if (_topScouters is null)
+            {
+                <div class="space-y-3">
+                    @for (int i = 0; i < 5; i++) { <div class="card h-14 animate-pulse bg-scout-800/50" /> }
+                </div>
+            }
+            else
+            {
+                <div class="space-y-2">
+                    @{int rank = 1;}
+                    @foreach (var s in _topScouters)
+                    {
+                        <a href="/scouters/@s.Username" class="card-hover flex items-center gap-3">
+                            <span class="text-lg font-display text-scout-600 w-6 text-center shrink-0">@rank</span>
+                            <div class="w-9 h-9 rounded-full bg-pitch-950 border border-pitch-800 flex items-center justify-center shrink-0">
+                                <span class="text-pitch-500 font-bold text-sm">@s.Username[0..1].ToUpper()</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-white truncate">@@@s.Username</p>
+                                <p class="text-xs text-scout-500">@s.ApprovedAnalysisCount analiz · @s.FollowerCount takipçi</p>
+                            </div>
+                        </a>
+                        rank++;
+                    }
+                </div>
+            }
+        </div>
+
+    </div>
+</div>
+
+@code {
+    private List<PlayerListItemVm>? _topPlayers;
+    private List<RecentAnalysisVm>? _recentAnalyses;
+    private List<ScouterVm>? _topScouters;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var t1 = PlayerService.GetTopAsync(10);
+        var t2 = AnalysisService.GetRecentAsync(6);
+        var t3 = ScouterService.GetTopAsync(8);
+        await Task.WhenAll(t1, t2, t3);
+        _topPlayers = (await t1).Data;
+        _recentAnalyses = (await t2).Data;
+        _topScouters = (await t3).Data;
+    }
+}

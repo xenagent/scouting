@@ -1,0 +1,104 @@
+@page "/scouters"
+@inject IScouterService ScouterService
+
+<PageTitle>Scoutlar — Scout</PageTitle>
+<HeadContent>
+    <meta name="description" content="En çok analiz yapan scoutları keşfet ve takip et." />
+</HeadContent>
+
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <div class="mb-8">
+        <h1 class="font-display text-4xl text-white mb-2">SCOUTLAR</h1>
+        <p class="text-scout-400">En çok analiz yapan içerik üreticileri</p>
+    </div>
+
+    @if (_scouters is null)
+    {
+        <div class="space-y-3">
+            @for (int i = 0; i < 10; i++)
+            {
+                <div class="card animate-pulse flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-scout-800 shrink-0"></div>
+                    <div class="flex-1">
+                        <div class="h-4 bg-scout-800 rounded w-1/4 mb-2"></div>
+                        <div class="h-3 bg-scout-800 rounded w-1/3"></div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else if (_scouters.Count == 0)
+    {
+        <div class="text-center py-24 text-scout-500">
+            <p class="text-5xl mb-4">🔭</p>
+            <p>Henüz aktif scout yok</p>
+        </div>
+    }
+    else
+    {
+        <div class="space-y-3">
+            @{int rank = 1;}
+            @foreach (var scouter in _scouters)
+            {
+                <a href="/scouters/@scouter.Username" class="card-hover flex items-center gap-4">
+                    <!-- Rank -->
+                    <span class="text-2xl font-display @RankColor(rank) w-8 text-center shrink-0">@rank</span>
+
+                    <!-- Avatar -->
+                    <div class="w-12 h-12 rounded-full bg-pitch-950 border border-pitch-800 flex items-center justify-center shrink-0 overflow-hidden">
+                        @if (!string.IsNullOrEmpty(scouter.AvatarUrl))
+                        {
+                            <img src="@scouter.AvatarUrl" alt="@scouter.Username" class="w-12 h-12 rounded-full object-cover" />
+                        }
+                        else
+                        {
+                            <span class="text-pitch-500 font-bold">@scouter.Username[0..1].ToUpper()</span>
+                        }
+                    </div>
+
+                    <!-- Info -->
+                    <div class="flex-1 min-w-0">
+                        <p class="font-semibold text-white">@@@scouter.Username</p>
+                        @if (!string.IsNullOrEmpty(scouter.Bio))
+                        {
+                            <p class="text-sm text-scout-400 truncate">@scouter.Bio</p>
+                        }
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="hidden sm:flex items-center gap-6 shrink-0">
+                        <div class="text-center">
+                            <p class="text-lg font-bold text-white">@scouter.ApprovedAnalysisCount</p>
+                            <p class="text-xs text-scout-500">Analiz</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-lg font-bold text-white">@scouter.FollowerCount</p>
+                            <p class="text-xs text-scout-500">Takipçi</p>
+                        </div>
+                    </div>
+                </a>
+                rank++;
+            }
+        </div>
+    }
+
+</div>
+
+@code {
+    private List<ScouterVm>? _scouters;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ScouterService.GetTopAsync(50);
+        _scouters = result.Data;
+    }
+
+    private string RankColor(int rank) => rank switch
+    {
+        1 => "text-yellow-400",
+        2 => "text-scout-300",
+        3 => "text-amber-700",
+        _ => "text-scout-700"
+    };
+}

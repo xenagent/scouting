@@ -1,0 +1,196 @@
+@page "/suggest"
+@attribute [Authorize]
+@inject IPlayerService PlayerService
+@inject ITransfermarktService TmService
+@inject AuthenticationStateProvider AuthState
+@rendermode InteractiveServer
+
+<PageTitle>Yeni Oyuncu Öner — Scout</PageTitle>
+
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="mb-8">
+        <h1 class="font-display text-4xl text-white mb-2">YENİ OYUNCU ÖNER</h1>
+        <p class="text-scout-400">
+            Sistemde olmayan bir oyuncu için öneri gönder.
+            Mevcut oyuncuyu analiz etmek için
+            <a href="/analysis/new" class="text-pitch-400 hover:text-pitch-300">buraya tıkla</a>.
+        </p>
+    </div>
+
+    @if (_submitted)
+    {
+        <div class="card border-pitch-800 bg-pitch-950/30 text-center py-10">
+            <div class="text-4xl mb-4">✓</div>
+            <h2 class="text-xl font-bold text-white mb-2">Önerin alındı!</h2>
+            <p class="text-scout-400 mb-6">Admin incelemesinden sonra yayına alınacak.</p>
+            <div class="flex justify-center gap-3">
+                <a href="/players" class="btn-secondary">Oyunculara Dön</a>
+                <button @onclick="Reset" class="btn-primary">Yeni Öneri Ekle</button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="space-y-6">
+            <div class="card">
+                <h3 class="text-sm font-semibold text-scout-300 uppercase tracking-wider mb-4">Oyuncu Bilgileri</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="sm:col-span-2">
+                        <label class="label">Oyuncu Adı *</label>
+                        <input @bind="_input.Name" type="text" placeholder="Arda Güler" class="input" />
+                    </div>
+                    <div>
+                        <label class="label">Yaş *</label>
+                        <input @bind="_input.Age" type="number" min="13" max="50" class="input" />
+                    </div>
+                    <div>
+                        <label class="label">Pozisyon *</label>
+                        <select @bind="_input.Position" class="input">
+                            <option value="">Seçiniz</option>
+                            <option value="GK">GK - Kaleci</option>
+                            <option value="CB">CB - Stoper</option>
+                            <option value="LB">LB - Sol Bek</option>
+                            <option value="RB">RB - Sağ Bek</option>
+                            <option value="CDM">CDM - Def. Orta</option>
+                            <option value="CM">CM - Merkez</option>
+                            <option value="CAM">CAM - Of. Orta</option>
+                            <option value="LM">LM - Sol Orta</option>
+                            <option value="RM">RM - Sağ Orta</option>
+                            <option value="LW">LW - Sol Kanat</option>
+                            <option value="RW">RW - Sağ Kanat</option>
+                            <option value="ST">ST - Santrafor</option>
+                            <option value="CF">CF - İkinci Forvet</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="label">Takım *</label>
+                        <input @bind="_input.Team" type="text" placeholder="Real Madrid B" class="input" />
+                    </div>
+                    <div>
+                        <label class="label">Lig *</label>
+                        <input @bind="_input.League" type="text" placeholder="Süper Lig" class="input" />
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="label">Ülke *</label>
+                        <input @bind="_input.Country" type="text" placeholder="Türkiye" class="input" />
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="label">
+                            Transfermarkt URL
+                            <span class="text-scout-600 font-normal">(isteğe bağlı — duplicate kontrolü için)</span>
+                        </label>
+                        <input @bind="_input.TransfermarktUrl" @bind:event="oninput" @oninput="OnTmUrlInput"
+                               type="url" placeholder="https://www.transfermarkt.com.tr/.../spieler/990148"
+                               class="input" />
+                        @if (!string.IsNullOrEmpty(_tmIdPreview))
+                        {
+                            <p class="text-xs text-pitch-400 mt-1">Tespit edilen TM ID: <strong>@_tmIdPreview</strong></p>
+                        }
+                        else if (!string.IsNullOrEmpty(_input.TransfermarktUrl))
+                        {
+                            <p class="text-xs text-red-400 mt-1">Geçerli bir Transfermarkt oyuncu URL'i giriniz.</p>
+                        }
+                    </div>
+                </div>
+                <p class="text-xs text-scout-600 mt-3">Oyuncu fotoğrafı admin tarafından yüklenecektir.</p>
+            </div>
+
+            <div class="card">
+                <h3 class="text-sm font-semibold text-scout-300 uppercase tracking-wider mb-4">Analiz</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="label">Video Linki *</label>
+                        <input @bind="_input.VideoUrl" type="url" placeholder="https://youtube.com/..." class="input" />
+                    </div>
+                    <div>
+                        <label class="label">Analiz Yazısı * <span class="text-scout-600 font-normal">(min. 50 karakter)</span></label>
+                        <textarea @bind="_input.AnalysisContent" rows="8"
+                                  placeholder="Oyuncunun teknik özellikleri, güçlü/zayıf yanları..."
+                                  class="input resize-none"></textarea>
+                        <div class="flex justify-between mt-1">
+                            <p class="text-xs text-scout-600">50–5000 karakter</p>
+                            <span class="text-xs @((_input.AnalysisContent?.Length ?? 0) < 50 ? "text-red-500" : "text-pitch-500")">
+                                @(_input.AnalysisContent?.Length ?? 0)/5000
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="rounded-lg bg-red-950 border border-red-800 p-4 text-sm text-red-300">@_error</div>
+            }
+
+            <div class="flex justify-end gap-3">
+                <a href="/players" class="btn-secondary">İptal</a>
+                <button @onclick="Submit" disabled="@_submitting" class="btn-primary">
+                    @(_submitting ? "Gönderiliyor..." : "Öneri Gönder")
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private SuggestPlayerInput _input = new();
+    private bool _submitting;
+    private bool _submitted;
+    private string? _error;
+    private Guid _userId;
+    private string? _tmIdPreview;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthState.GetAuthenticationStateAsync();
+        Guid.TryParse(auth.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out _userId);
+    }
+
+    private void OnTmUrlInput(ChangeEventArgs e)
+    {
+        var url = e.Value?.ToString() ?? "";
+        _tmIdPreview = TmService.ExtractTmId(url);
+    }
+
+    private async Task Submit()
+    {
+        _error = null;
+
+        if (string.IsNullOrWhiteSpace(_input.Name) || _input.Age == 0 ||
+            string.IsNullOrWhiteSpace(_input.Position) || string.IsNullOrWhiteSpace(_input.Team) ||
+            string.IsNullOrWhiteSpace(_input.League) || string.IsNullOrWhiteSpace(_input.Country) ||
+            string.IsNullOrWhiteSpace(_input.VideoUrl) || string.IsNullOrWhiteSpace(_input.AnalysisContent))
+        {
+            _error = "Lütfen tüm zorunlu alanları doldurun.";
+            return;
+        }
+
+        if (_input.AnalysisContent.Length < 50)
+        {
+            _error = "Analiz yazısı en az 50 karakter olmalıdır.";
+            return;
+        }
+
+        _submitting = true;
+        var result = await PlayerService.SuggestAsync(_input, _userId);
+        _submitting = false;
+
+        if (result.IsSuccess)
+            _submitted = true;
+        else
+            _error = result.ErrorCode switch
+            {
+                ErrorCodes.ANALYSIS_CONTENT_TOO_SHORT       => "Analiz çok kısa.",
+                ErrorCodes.TRANSFERMARKT_INVALID_URL         => "Geçerli bir Transfermarkt oyuncu URL'i giriniz.",
+                ErrorCodes.PLAYER_DUPLICATE_TRANSFERMARKT_ID => "Bu Transfermarkt ID'sine sahip oyuncu zaten sistemde kayıtlı.",
+                _ => "Bir hata oluştu: " + result.ErrorCode
+            };
+    }
+
+    private void Reset()
+    {
+        _input = new();
+        _submitted = false;
+        _error = null;
+    }
+}
