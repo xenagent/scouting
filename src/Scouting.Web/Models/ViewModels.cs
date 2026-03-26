@@ -113,6 +113,19 @@ public class ScouterAnalysisVm
     public DateTime CreatedAt { get; set; }
 }
 
+public class PendingAnalysisVm
+{
+    public Guid Id { get; set; }
+    public Guid PlayerId { get; set; }
+    public string PlayerName { get; set; } = "";
+    public string PlayerSlug { get; set; } = "";
+    public string SuggestedByUsername { get; set; } = "";
+    public Guid SuggestedByUserId { get; set; }
+    public string VideoUrl { get; set; } = "";
+    public string ContentPreview { get; set; } = "";
+    public DateTime SubmittedAt { get; set; }
+}
+
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
 public class PlayerFilter

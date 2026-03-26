@@ -1,16 +1,19 @@
 @page "/suggest"
 @attribute [Authorize]
 @inject IPlayerService PlayerService
-@inject IFileService FileService
 @inject AuthenticationStateProvider AuthState
 @rendermode InteractiveServer
 
-<PageTitle>Oyuncu Öner — Scout</PageTitle>
+<PageTitle>Yeni Oyuncu Öner — Scout</PageTitle>
 
 <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
     <div class="mb-8">
-        <h1 class="font-display text-4xl text-white mb-2">OYUNCU ÖNER</h1>
-        <p class="text-scout-400">Kaliteli analiz ekle. Admin inceledikten sonra yayına alınır.</p>
+        <h1 class="font-display text-4xl text-white mb-2">YENİ OYUNCU ÖNER</h1>
+        <p class="text-scout-400">
+            Sistemde olmayan bir oyuncu için öneri gönder.
+            Mevcut oyuncuyu analiz etmek için
+            <a href="/analysis/new" class="text-pitch-400 hover:text-pitch-300">buraya tıkla</a>.
+        </p>
     </div>
 
     @if (_submitted)
@@ -66,52 +69,12 @@
                         <label class="label">Lig *</label>
                         <input @bind="_input.League" type="text" placeholder="Süper Lig" class="input" />
                     </div>
-                    <div>
+                    <div class="sm:col-span-2">
                         <label class="label">Ülke *</label>
                         <input @bind="_input.Country" type="text" placeholder="Türkiye" class="input" />
                     </div>
-
-                    <!-- Image upload -->
-                    <div class="sm:col-span-2">
-                        <label class="label">Oyuncu Fotoğrafı <span class="text-scout-600">(opsiyonel)</span></label>
-
-                        @if (!string.IsNullOrEmpty(_input.ImageUrl))
-                        {
-                            <div class="flex items-center gap-3 mb-3">
-                                <img src="@_input.ImageUrl" alt="Önizleme"
-                                     class="w-16 h-16 rounded-lg object-cover border border-scout-700" />
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-xs text-pitch-400 truncate">@_input.ImageUrl</p>
-                                </div>
-                                <button type="button" @onclick="ClearImage"
-                                        class="text-xs text-red-400 hover:text-red-300">Kaldır</button>
-                            </div>
-                        }
-
-                        <div class="flex gap-2">
-                            <label class="flex-1 flex items-center justify-center gap-2 border border-dashed border-scout-700 rounded-lg p-3 cursor-pointer hover:border-pitch-600 transition-colors @(_uploading ? "opacity-50 pointer-events-none" : "")">
-                                @if (_uploading)
-                                {
-                                    <span class="text-sm text-scout-400">Yükleniyor...</span>
-                                }
-                                else
-                                {
-                                    <svg class="w-4 h-4 text-scout-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    <span class="text-sm text-scout-400">Dosya seç (JPG, PNG, WebP · max 5 MB)</span>
-                                }
-                                <InputFile OnChange="OnImageSelected" accept=".jpg,.jpeg,.png,.webp" class="hidden" />
-                            </label>
-                        </div>
-
-                        @if (!string.IsNullOrEmpty(_uploadError))
-                        {
-                            <p class="text-xs text-red-400 mt-1">@_uploadError</p>
-                        }
-                    </div>
                 </div>
+                <p class="text-xs text-scout-600 mt-3">Oyuncu fotoğrafı admin tarafından yüklenecektir.</p>
             </div>
 
             <div class="card">
@@ -143,7 +106,7 @@
 
             <div class="flex justify-end gap-3">
                 <a href="/players" class="btn-secondary">İptal</a>
-                <button @onclick="Submit" disabled="@(_submitting || _uploading)" class="btn-primary">
+                <button @onclick="Submit" disabled="@_submitting" class="btn-primary">
                     @(_submitting ? "Gönderiliyor..." : "Öneri Gönder")
                 </button>
             </div>
@@ -155,38 +118,14 @@
     private SuggestPlayerInput _input = new();
     private bool _submitting;
     private bool _submitted;
-    private bool _uploading;
     private string? _error;
-    private string? _uploadError;
     private Guid _userId;
 
     protected override async Task OnInitializedAsync()
     {
         var auth = await AuthState.GetAuthenticationStateAsync();
-        var idClaim = auth.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        Guid.TryParse(idClaim, out _userId);
+        Guid.TryParse(auth.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out _userId);
     }
-
-    private async Task OnImageSelected(InputFileChangeEventArgs e)
-    {
-        _uploadError = null;
-        _uploading = true;
-
-        var result = await FileService.UploadPlayerImageAsync(e.File);
-        _uploading = false;
-
-        if (result.IsSuccess)
-            _input.ImageUrl = result.Data;
-        else
-            _uploadError = result.ErrorCode switch
-            {
-                "FILE_INVALID_TYPE" => "Sadece JPG, PNG ve WebP dosyaları kabul edilir.",
-                "FILE_TOO_LARGE"    => "Dosya boyutu 5 MB'ı geçemez.",
-                _                  => "Yükleme başarısız oldu."
-            };
-    }
-
-    private void ClearImage() => _input.ImageUrl = null;
 
     private async Task Submit()
     {
@@ -226,6 +165,5 @@
         _input = new();
         _submitted = false;
         _error = null;
-        _uploadError = null;
     }
 }

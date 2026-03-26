@@ -6,6 +6,7 @@ namespace Scouting.Web.Services;
 public interface IFileService
 {
     Task<ServiceResult<string>> UploadPlayerImageAsync(IBrowserFile file, CancellationToken ct = default);
+    Task<ServiceResult<string>> UploadAvatarAsync(IBrowserFile file, CancellationToken ct = default);
 }
 
 public class FileService : IFileService
@@ -37,5 +38,27 @@ public class FileService : IFileService
         await readStream.CopyToAsync(writeStream, ct);
 
         return ServiceResult<string>.Ok($"/uploads/players/{fileName}");
+    }
+
+    public async Task<ServiceResult<string>> UploadAvatarAsync(IBrowserFile file, CancellationToken ct = default)
+    {
+        var ext = Path.GetExtension(file.Name).ToLowerInvariant();
+        if (!AllowedExtensions.Contains(ext))
+            return ServiceResult<string>.Fail("FILE_INVALID_TYPE");
+
+        if (file.Size > MaxFileSizeBytes)
+            return ServiceResult<string>.Fail("FILE_TOO_LARGE");
+
+        var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "avatars");
+        Directory.CreateDirectory(uploadsDir);
+
+        var fileName = $"{Guid.NewGuid()}{ext}";
+        var filePath = Path.Combine(uploadsDir, fileName);
+
+        await using var readStream = file.OpenReadStream(MaxFileSizeBytes, ct);
+        await using var writeStream = File.Create(filePath);
+        await readStream.CopyToAsync(writeStream, ct);
+
+        return ServiceResult<string>.Ok($"/uploads/avatars/{fileName}");
     }
 }

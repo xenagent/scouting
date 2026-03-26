@@ -1,5 +1,6 @@
 @page "/scouters/{Username}"
 @inject IScouterService ScouterService
+@inject IFileService FileService
 @inject AuthenticationStateProvider AuthState
 @rendermode InteractiveServer
 
@@ -29,9 +30,41 @@
     {
         <div class="card mb-8">
             <div class="flex flex-col sm:flex-row gap-6">
-                <div class="w-20 h-20 rounded-full bg-pitch-950 border-2 border-pitch-800 flex items-center justify-center shrink-0">
-                    <span class="font-display text-3xl text-pitch-500">@_profile.Username[0..1].ToUpper()</span>
+
+                <!-- Avatar -->
+                <div class="relative shrink-0 group w-20 h-20">
+                    <div class="w-20 h-20 rounded-full bg-pitch-950 border-2 border-pitch-800 flex items-center justify-center overflow-hidden">
+                        @if (!string.IsNullOrEmpty(_profile.AvatarUrl))
+                        {
+                            <img src="@_profile.AvatarUrl" alt="@_profile.Username" class="w-20 h-20 object-cover rounded-full" />
+                        }
+                        else
+                        {
+                            <span class="font-display text-3xl text-pitch-500">@_profile.Username[0..1].ToUpper()</span>
+                        }
+                    </div>
+
+                    @if (_isOwner)
+                    {
+                        <label class="absolute inset-0 rounded-full flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                               title="Fotoğraf değiştir">
+                            @if (_avatarUploading)
+                            {
+                                <span class="text-xs text-white">...</span>
+                            }
+                            else
+                            {
+                                <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            }
+                            <InputFile OnChange="OnAvatarSelected" accept=".jpg,.jpeg,.png,.webp" class="hidden" />
+                        </label>
+                    }
                 </div>
+
                 <div class="flex-1">
                     <div class="flex flex-wrap items-start justify-between gap-3">
                         <div>
@@ -40,14 +73,25 @@
                             {
                                 <p class="text-scout-400 mt-1">@_profile.Bio</p>
                             }
+                            @if (!string.IsNullOrEmpty(_avatarError))
+                            {
+                                <p class="text-xs text-red-400 mt-1">@_avatarError</p>
+                            }
                         </div>
-                        @if (_isLoggedIn && _profile.Id != _userId)
-                        {
-                            <button @onclick="ToggleFollow"
-                                    class="@(_profile.IsFollowedByViewer ? "btn-secondary" : "btn-primary") text-sm">
-                                @(_profile.IsFollowedByViewer ? "Takip Ediliyor" : "Takip Et")
-                            </button>
-                        }
+
+                        <div class="flex items-center gap-2">
+                            @if (_isOwner)
+                            {
+                                <a href="/analysis/new" class="btn-primary text-sm">+ Analiz Yaz</a>
+                            }
+                            else if (_isLoggedIn)
+                            {
+                                <button @onclick="ToggleFollow"
+                                        class="@(_profile.IsFollowedByViewer ? "btn-secondary" : "btn-primary") text-sm">
+                                    @(_profile.IsFollowedByViewer ? "Takip Ediliyor" : "Takip Et")
+                                </button>
+                            }
+                        </div>
                     </div>
                     <div class="flex items-center gap-6 mt-4 pt-4 border-t border-scout-800">
                         <div class="text-center">
@@ -76,8 +120,15 @@
                 {
                     <a href="/players/@a.PlayerSlug" class="card-hover block">
                         <div class="flex items-start gap-4">
-                            <div class="w-12 h-12 rounded-lg bg-scout-800 shrink-0 flex items-center justify-center">
-                                <span class="text-scout-500 font-bold">@a.PlayerName[0]</span>
+                            <div class="w-12 h-12 rounded-lg bg-scout-800 shrink-0 flex items-center justify-center overflow-hidden">
+                                @if (!string.IsNullOrEmpty(a.PlayerImageUrl))
+                                {
+                                    <img src="@a.PlayerImageUrl" alt="@a.PlayerName" class="w-12 h-12 object-cover rounded-lg" />
+                                }
+                                else
+                                {
+                                    <span class="text-scout-500 font-bold">@a.PlayerName[0]</span>
+                                }
                             </div>
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2 mb-1">
@@ -104,18 +155,48 @@
     private ScouterProfileVm? _profile;
     private bool _loading = true;
     private bool _isLoggedIn;
+    private bool _isOwner;
     private Guid _userId;
+    private bool _avatarUploading;
+    private string? _avatarError;
 
     protected override async Task OnInitializedAsync()
     {
         var auth = await AuthState.GetAuthenticationStateAsync();
         _isLoggedIn = auth.User.Identity?.IsAuthenticated ?? false;
         if (_isLoggedIn)
+        {
             Guid.TryParse(auth.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out _userId);
+            var currentUsername = auth.User.FindFirst(ClaimTypes.Name)?.Value;
+            _isOwner = string.Equals(currentUsername, Username, StringComparison.OrdinalIgnoreCase);
+        }
 
         var result = await ScouterService.GetProfileAsync(Username, _isLoggedIn ? _userId : null);
         _profile = result.Data;
         _loading = false;
+    }
+
+    private async Task OnAvatarSelected(InputFileChangeEventArgs e)
+    {
+        _avatarError = null;
+        _avatarUploading = true;
+
+        var uploadResult = await FileService.UploadAvatarAsync(e.File);
+        if (!uploadResult.IsSuccess)
+        {
+            _avatarError = uploadResult.ErrorCode switch
+            {
+                "FILE_INVALID_TYPE" => "Sadece JPG, PNG ve WebP kabul edilir.",
+                "FILE_TOO_LARGE"    => "Dosya 5 MB'ı geçemez.",
+                _                  => "Yükleme başarısız."
+            };
+            _avatarUploading = false;
+            return;
+        }
+
+        await ScouterService.UpdateAvatarAsync(_userId, uploadResult.Data!);
+        _profile!.AvatarUrl = uploadResult.Data;
+        _avatarUploading = false;
     }
 
     private async Task ToggleFollow()

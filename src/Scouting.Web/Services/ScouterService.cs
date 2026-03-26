@@ -119,6 +119,17 @@ public class ScouterService : IScouterService
         return ServiceResult.Ok();
     }
 
+    public async Task<ServiceResult> UpdateAvatarAsync(
+        Guid userId, string avatarUrl, CancellationToken ct = default)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
+        if (user is null) return ServiceResult.Fail(ErrorCodes.COMMON_MESSAGE_RECORD_NOT_FOUND);
+
+        user.SetAvatar(avatarUrl);
+        await _db.SaveChangesAsync(ct);
+        return ServiceResult.Ok();
+    }
+
     public async Task<ServiceListResult<ScouterVm>> GetFollowingAsync(
         Guid userId, CancellationToken ct = default)
     {

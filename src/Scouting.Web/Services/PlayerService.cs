@@ -236,6 +236,17 @@ public class PlayerService : IPlayerService
         return ServiceResult.Ok();
     }
 
+    public async Task<ServiceResult> SetPlayerImageAsync(
+        Guid playerId, string imageUrl, CancellationToken ct = default)
+    {
+        var player = await _db.Players.FirstOrDefaultAsync(p => p.Id == playerId, ct);
+        if (player is null) return ServiceResult.Fail(ErrorCodes.COMMON_MESSAGE_RECORD_NOT_FOUND);
+
+        player.SetImageUrl(imageUrl);
+        await _db.SaveChangesAsync(ct);
+        return ServiceResult.Ok();
+    }
+
     public async Task<ServiceResult> RejectAsync(
         Guid playerId, string reason, CancellationToken ct = default)
     {

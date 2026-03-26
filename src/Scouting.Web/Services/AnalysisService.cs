@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Scouting.Web.Domains.AnalysisEntity;
+using Scouting.Web.Domains.PlayerEntity;
 using Scouting.Web.Infrastructure;
 using Scouting.Web.Models;
 using Scouting.Web.Shared;
@@ -45,6 +46,54 @@ public class AnalysisService : IAnalysisService
             .ToListAsync(ct);
 
         return ServiceListResult<RecentAnalysisVm>.Ok(items);
+    }
+
+    public async Task<ServiceListResult<PendingAnalysisVm>> GetPendingAsync(
+        int page = 1, int pageSize = 20, CancellationToken ct = default)
+    {
+        var items = await (
+            from a in _db.Analyses.AsNoTracking()
+            where a.Status == AnalysisStatus.Pending
+            join p in _db.Players.AsNoTracking() on a.PlayerId equals p.Id
+            where p.Status == PlayerStatus.Approved   // sadece onaylı oyuncular
+            join u in _db.Users.AsNoTracking() on a.CreatedUserId equals u.Id into users
+            from u in users.DefaultIfEmpty()
+            orderby a.CreatedTime descending
+            select new PendingAnalysisVm
+            {
+                Id = a.Id,
+                PlayerId = p.Id,
+                PlayerName = p.Name!,
+                PlayerSlug = p.Slug!,
+                SuggestedByUsername = u != null ? u.Username! : "anonymous",
+                SuggestedByUserId = a.CreatedUserId ?? Guid.Empty,
+                VideoUrl = a.VideoUrl!,
+                ContentPreview = a.Content!.Length > 300
+                    ? a.Content.Substring(0, 300) + "..."
+                    : a.Content,
+                SubmittedAt = a.CreatedTime
+            })
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return ServiceListResult<PendingAnalysisVm>.Ok(items);
+    }
+
+    public async Task<ServiceResult> AddAnalysisAsync(
+        Guid playerId, string videoUrl, string content, Guid userId, CancellationToken ct = default)
+    {
+        var player = await _db.Players.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == playerId && p.Status == PlayerStatus.Approved, ct);
+        if (player is null) return ServiceResult.Fail(ErrorCodes.COMMON_MESSAGE_RECORD_NOT_FOUND);
+
+        var result = Analysis.Create(playerId, videoUrl, content, userId);
+        if (!result.IsSuccess)
+            return ServiceResult.Fail(result.Messages?.FirstOrDefault()?.Code ?? "UNKNOWN");
+
+        await _db.Analyses.AddAsync(result.Data!, ct);
+        await _db.SaveChangesAsync(ct);
+        return ServiceResult.Ok();
     }
 
     public async Task<ServiceResult> ApproveAsync(Guid analysisId, CancellationToken ct = default)

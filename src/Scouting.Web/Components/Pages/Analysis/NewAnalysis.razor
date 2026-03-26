@@ -1,0 +1,245 @@
+@page "/analysis/new"
+@attribute [Authorize]
+@inject IPlayerService PlayerService
+@inject IAnalysisService AnalysisService
+@inject AuthenticationStateProvider AuthState
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<PageTitle>Analiz Yaz — Scout</PageTitle>
+
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <div class="mb-8">
+        <h1 class="font-display text-4xl text-white mb-2">ANALİZ YAZ</h1>
+        <p class="text-scout-400">Mevcut bir oyuncu için analiz ekle. Admin onayladıktan sonra yayına alınır.</p>
+    </div>
+
+    @if (_submitted)
+    {
+        <div class="card border-pitch-800 bg-pitch-950/30 text-center py-10">
+            <div class="text-4xl mb-4">✓</div>
+            <h2 class="text-xl font-bold text-white mb-2">Analizin alındı!</h2>
+            <p class="text-scout-400 mb-6">Admin incelemesinden sonra yayına alınacak.</p>
+            <div class="flex justify-center gap-3">
+                <a href="/players/@_selectedPlayer!.Slug" class="btn-secondary">Oyuncuya Git</a>
+                <button @onclick="Reset" class="btn-primary">Yeni Analiz Ekle</button>
+            </div>
+        </div>
+    }
+    else if (_selectedPlayer is null)
+    {
+        <!-- ADIM 1: Oyuncu Seç -->
+        <div class="card mb-4">
+            <h3 class="text-sm font-semibold text-scout-300 uppercase tracking-wider mb-4">Oyuncu Seç</h3>
+            <div class="flex gap-2 mb-4">
+                <input @bind="_searchQuery" @bind:event="oninput" @onkeydown="OnSearchKeyDown"
+                       type="text" placeholder="Oyuncu adı veya takım..." class="input flex-1" />
+                <button @onclick="Search" class="btn-secondary">Ara</button>
+            </div>
+
+            @if (_searching)
+            {
+                <div class="space-y-2">
+                    @for (int i = 0; i < 3; i++)
+                    {
+                        <div class="animate-pulse h-14 bg-scout-800 rounded-lg"></div>
+                    }
+                </div>
+            }
+            else if (_searchResults is not null && _searchResults.Count == 0)
+            {
+                <p class="text-scout-500 text-sm text-center py-6">Sonuç bulunamadı.</p>
+            }
+            else if (_searchResults is not null)
+            {
+                <div class="space-y-2">
+                    @foreach (var p in _searchResults)
+                    {
+                        <button @onclick="() => SelectPlayer(p)"
+                                class="w-full flex items-center gap-3 p-3 rounded-lg bg-scout-800/50 hover:bg-scout-800 transition-colors text-left">
+                            <div class="w-10 h-10 rounded-lg bg-pitch-950 flex items-center justify-center shrink-0 overflow-hidden">
+                                @if (!string.IsNullOrEmpty(p.ImageUrl))
+                                {
+                                    <img src="@p.ImageUrl" alt="@p.Name" class="w-10 h-10 object-cover rounded-lg" />
+                                }
+                                else
+                                {
+                                    <span class="font-display text-lg text-pitch-600">@p.Name[0]</span>
+                                }
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-white">@p.Name</p>
+                                <p class="text-xs text-scout-400">@p.Team · @p.League</p>
+                            </div>
+                            <span class="badge-position text-xs shrink-0">@p.Position</span>
+                        </button>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-scout-600 text-sm text-center py-6">Oyuncu aramak için yukarıya yazın.</p>
+            }
+        </div>
+
+        <div class="text-center text-scout-600 text-sm">
+            Oyuncu sistemde yok mu?
+            <a href="/suggest" class="text-pitch-400 hover:text-pitch-300">Yeni oyuncu öner</a>
+        </div>
+    }
+    else
+    {
+        <!-- ADIM 2: Analiz Yaz -->
+        <div class="space-y-6">
+
+            <!-- Seçili Oyuncu -->
+            <div class="card flex items-center gap-4">
+                <div class="w-14 h-14 rounded-lg bg-pitch-950 flex items-center justify-center shrink-0 overflow-hidden">
+                    @if (!string.IsNullOrEmpty(_selectedPlayer.ImageUrl))
+                    {
+                        <img src="@_selectedPlayer.ImageUrl" alt="@_selectedPlayer.Name" class="w-14 h-14 object-cover rounded-lg" />
+                    }
+                    else
+                    {
+                        <span class="font-display text-2xl text-pitch-600">@_selectedPlayer.Name[0]</span>
+                    }
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="font-bold text-white">@_selectedPlayer.Name</p>
+                    <p class="text-sm text-scout-400">@_selectedPlayer.Team · @_selectedPlayer.League</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="badge-position">@_selectedPlayer.Position</span>
+                    <button @onclick="() => _selectedPlayer = null" class="text-xs text-scout-500 hover:text-white ml-2">Değiştir</button>
+                </div>
+            </div>
+
+            <!-- Analiz Formu -->
+            <div class="card">
+                <h3 class="text-sm font-semibold text-scout-300 uppercase tracking-wider mb-4">Analiz</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="label">Video Linki *</label>
+                        <input @bind="_videoUrl" type="url" placeholder="https://youtube.com/..." class="input" />
+                    </div>
+                    <div>
+                        <label class="label">Analiz Yazısı * <span class="text-scout-600 font-normal">(min. 50 karakter)</span></label>
+                        <textarea @bind="_content" rows="8"
+                                  placeholder="Oyuncunun teknik özellikleri, güçlü/zayıf yanları, potansiyeli..."
+                                  class="input resize-none"></textarea>
+                        <div class="flex justify-between mt-1">
+                            <p class="text-xs text-scout-600">50–5000 karakter</p>
+                            <span class="text-xs @((_content?.Length ?? 0) < 50 ? "text-red-500" : "text-pitch-500")">
+                                @(_content?.Length ?? 0)/5000
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="rounded-lg bg-red-950 border border-red-800 p-4 text-sm text-red-300">@_error</div>
+            }
+
+            <div class="flex justify-end gap-3">
+                <button @onclick="() => _selectedPlayer = null" class="btn-secondary">Geri</button>
+                <button @onclick="Submit" disabled="@_submitting" class="btn-primary">
+                    @(_submitting ? "Gönderiliyor..." : "Analizi Gönder")
+                </button>
+            </div>
+        </div>
+    }
+
+</div>
+
+@code {
+    [SupplyParameterFromQuery] public string? Slug { get; set; }
+
+    private string _searchQuery = "";
+    private List<PlayerListItemVm>? _searchResults;
+    private bool _searching;
+    private PlayerListItemVm? _selectedPlayer;
+
+    private string _videoUrl = "";
+    private string _content = "";
+    private bool _submitting;
+    private bool _submitted;
+    private string? _error;
+    private Guid _userId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthState.GetAuthenticationStateAsync();
+        Guid.TryParse(auth.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out _userId);
+
+        // Pre-select player if slug query param provided
+        if (!string.IsNullOrEmpty(Slug))
+        {
+            var result = await PlayerService.GetListAsync(new PlayerFilter { Search = Slug, PageSize = 1 });
+            _selectedPlayer = result.Data.FirstOrDefault(p => p.Slug == Slug);
+        }
+    }
+
+    private async Task OnSearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await Search();
+    }
+
+    private async Task Search()
+    {
+        if (string.IsNullOrWhiteSpace(_searchQuery)) return;
+        _searching = true;
+        var result = await PlayerService.GetListAsync(new PlayerFilter { Search = _searchQuery, PageSize = 10 });
+        _searchResults = result.Data;
+        _searching = false;
+    }
+
+    private void SelectPlayer(PlayerListItemVm player)
+    {
+        _selectedPlayer = player;
+        _searchResults = null;
+        _searchQuery = "";
+    }
+
+    private async Task Submit()
+    {
+        _error = null;
+
+        if (string.IsNullOrWhiteSpace(_videoUrl))
+        {
+            _error = "Video linki zorunludur.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_content) || _content.Length < 50)
+        {
+            _error = "Analiz yazısı en az 50 karakter olmalıdır.";
+            return;
+        }
+
+        _submitting = true;
+        var result = await AnalysisService.AddAnalysisAsync(_selectedPlayer!.Id, _videoUrl, _content, _userId);
+        _submitting = false;
+
+        if (result.IsSuccess)
+            _submitted = true;
+        else
+            _error = result.ErrorCode switch
+            {
+                ErrorCodes.ANALYSIS_CONTENT_TOO_SHORT => "Analiz çok kısa.",
+                ErrorCodes.COMMON_MESSAGE_RECORD_NOT_FOUND => "Oyuncu bulunamadı.",
+                _ => "Bir hata oluştu: " + result.ErrorCode
+            };
+    }
+
+    private void Reset()
+    {
+        _selectedPlayer = null;
+        _videoUrl = "";
+        _content = "";
+        _submitted = false;
+        _error = null;
+    }
+}

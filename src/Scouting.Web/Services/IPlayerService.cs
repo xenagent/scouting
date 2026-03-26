@@ -12,4 +12,5 @@ public interface IPlayerService
     Task<ServiceResult> SuggestAsync(SuggestPlayerInput input, Guid userId, CancellationToken ct = default);
     Task<ServiceResult> ApproveAsync(Guid playerId, CancellationToken ct = default);
     Task<ServiceResult> RejectAsync(Guid playerId, string reason, CancellationToken ct = default);
+    Task<ServiceResult> SetPlayerImageAsync(Guid playerId, string imageUrl, CancellationToken ct = default);
 }

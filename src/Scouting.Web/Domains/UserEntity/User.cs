@@ -36,6 +36,7 @@ public class User : BaseModel
         });
     }
 
+    public void SetAvatar(string url) => AvatarUrl = url;
     public void IncrementApprovedAnalysisCount() => ApprovedAnalysisCount++;
     public void IncrementFollowerCount() => FollowerCount++;
     public void DecrementFollowerCount() { if (FollowerCount > 0) FollowerCount--; }

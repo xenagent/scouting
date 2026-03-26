@@ -10,4 +10,5 @@ public interface IScouterService
     Task<ServiceResult> FollowAsync(Guid followerId, Guid scouterId, CancellationToken ct = default);
     Task<ServiceResult> UnfollowAsync(Guid followerId, Guid scouterId, CancellationToken ct = default);
     Task<ServiceListResult<ScouterVm>> GetFollowingAsync(Guid userId, CancellationToken ct = default);
+    Task<ServiceResult> UpdateAvatarAsync(Guid userId, string avatarUrl, CancellationToken ct = default);
 }
