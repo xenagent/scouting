@@ -117,7 +117,11 @@ public class PlayerService : IPlayerService
                 SuggestedByUsername = _db.Users
                     .Where(u => u.Id == p.CreatedUserId)
                     .Select(u => u.Username)
-                    .FirstOrDefault() ?? "anonymous"
+                    .FirstOrDefault() ?? "anonymous",
+                TransfermarktUrl = p.TransfermarktUrl,
+                MarketValue = p.MarketValue,
+                PreviousMarketValue = p.PreviousMarketValue,
+                LastTransfermarktSync = p.LastTransfermarktSync
             })
             .FirstOrDefaultAsync(ct);
 
@@ -176,7 +180,46 @@ public class PlayerService : IPlayerService
         player.UpvoteCount = votes.FirstOrDefault(v => v.Type == VoteType.Up)?.Count ?? 0;
         player.DownvoteCount = votes.FirstOrDefault(v => v.Type == VoteType.Down)?.Count ?? 0;
 
+        // Sezon istatistiklerini JSON'dan deserialize et
+        var rawPlayer = await _db.Players.AsNoTracking()
+            .Where(p => p.Slug == slug)
+            .Select(p => p.SeasonStatsJson)
+            .FirstOrDefaultAsync(ct);
+
+        if (!string.IsNullOrEmpty(rawPlayer))
+        {
+            var stats = System.Text.Json.JsonSerializer
+                .Deserialize<List<PlayerSeasonStats>>(rawPlayer);
+            if (stats is not null)
+                player.SeasonStats = stats.Select(s => new TmSeasonStatVm
+                {
+                    Season = s.Season,
+                    Matches = s.Matches,
+                    Goals = s.Goals,
+                    Assists = s.Assists
+                }).ToList();
+        }
+
         return ServiceResult<PlayerDetailVm>.Ok(player);
+    }
+
+    public async Task<ServiceResult> SyncFromTransfermarktAsync(
+        Guid playerId, CancellationToken ct = default)
+    {
+        var player = await _db.Players.FirstOrDefaultAsync(p => p.Id == playerId, ct);
+        if (player is null)
+            return ServiceResult.Fail(ErrorCodes.COMMON_MESSAGE_RECORD_NOT_FOUND);
+
+        if (string.IsNullOrEmpty(player.TransfermarktId))
+            return ServiceResult.Fail(ErrorCodes.TRANSFERMARKT_INVALID_URL);
+
+        var data = await _tm.ScrapePlayerAsync(player.TransfermarktId, ct);
+        if (data is null)
+            return ServiceResult.Fail("TRANSFERMARKT_SCRAPE_FAILED");
+
+        player.UpdateFromTransfermarkt(data);
+        await _db.SaveChangesAsync(ct);
+        return ServiceResult.Ok();
     }
 
     public async Task<ServiceListResult<PendingPlayerVm>> GetPendingAsync(
