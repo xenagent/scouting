@@ -1,0 +1,51 @@
+@using Scouting.Web.Models
+
+<a href="/players/@Analysis.PlayerSlug" class="card-hover flex gap-4 block">
+    <!-- Player Avatar -->
+    <div class="w-12 h-12 rounded-lg bg-scout-800 shrink-0 flex items-center justify-center overflow-hidden">
+        @if (!string.IsNullOrEmpty(Analysis.PlayerImageUrl))
+        {
+            <img src="@Analysis.PlayerImageUrl" alt="@Analysis.PlayerName" class="w-full h-full object-cover" />
+        }
+        else
+        {
+            <span class="font-display text-xl text-scout-600">@Analysis.PlayerName[0]</span>
+        }
+    </div>
+
+    <div class="flex-1 min-w-0">
+        <!-- Header -->
+        <div class="flex items-center justify-between gap-2 mb-1">
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-sm font-semibold text-white">@Analysis.PlayerName</span>
+                @if (!string.IsNullOrEmpty(Analysis.PlayerPosition))
+                {
+                    <span class="badge-position text-xs">@Analysis.PlayerPosition</span>
+                }
+            </div>
+            @if (Analysis.AIScore.HasValue)
+            {
+                <span class="ai-score shrink-0">AI @Analysis.AIScore.Value.ToString("0.0")</span>
+            }
+        </div>
+
+        <!-- Scout -->
+        <p class="text-xs text-scout-500 mb-2">
+            <span class="text-pitch-500">@@Analysis.ScoutUsername</span>
+            · @Analysis.CreatedAt.ToString("dd MMM yyyy")
+        </p>
+
+        <!-- AI Summary -->
+        @if (!string.IsNullOrEmpty(Analysis.AISummary))
+        {
+            <p class="text-xs text-violet-400 mb-1.5 italic">@Analysis.AISummary</p>
+        }
+
+        <!-- Content Preview -->
+        <p class="text-sm text-scout-400 line-clamp-2">@Analysis.ContentPreview</p>
+    </div>
+</a>
+
+@code {
+    [Parameter, EditorRequired] public RecentAnalysis Analysis { get; set; } = default!;
+}

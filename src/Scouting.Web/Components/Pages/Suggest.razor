@@ -1,0 +1,201 @@
+@page "/suggest"
+@inject IScoutingApiService Api
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<PageTitle>Oyuncu Öner — Scout</PageTitle>
+
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <div class="mb-8">
+        <h1 class="font-display text-4xl text-white mb-2">OYUNCU ÖNER</h1>
+        <p class="text-scout-400">Kaliteli bir analiz ekle. Admin inceledikten sonra yayına alınır.</p>
+    </div>
+
+    @if (_submitted)
+    {
+        <div class="card border-pitch-800 bg-pitch-950/30 text-center py-10">
+            <div class="text-4xl mb-4">✓</div>
+            <h2 class="text-xl font-bold text-white mb-2">Önerin alındı!</h2>
+            <p class="text-scout-400 mb-6">Admin incelemesinden sonra yayına alınacak.</p>
+            <div class="flex justify-center gap-3">
+                <a href="/players" class="btn-secondary">Oyunculara Dön</a>
+                <button @onclick="ResetForm" class="btn-primary">Yeni Öneri Ekle</button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="space-y-6">
+
+            <!-- Player Info -->
+            <div class="card">
+                <h3 class="text-sm font-semibold text-scout-300 uppercase tracking-wider mb-4">Oyuncu Bilgileri</h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="sm:col-span-2">
+                        <label class="label">Oyuncu Adı *</label>
+                        <input @bind="_name" type="text" placeholder="Örn: Arda Güler" class="input" />
+                    </div>
+                    <div>
+                        <label class="label">Yaş *</label>
+                        <input @bind="_age" type="number" min="13" max="50" placeholder="22" class="input" />
+                    </div>
+                    <div>
+                        <label class="label">Pozisyon *</label>
+                        <select @bind="_position" class="input">
+                            <option value="">Seçiniz</option>
+                            <option value="0">GK - Kaleci</option>
+                            <option value="1">CB - Stoper</option>
+                            <option value="2">LB - Sol Bek</option>
+                            <option value="3">RB - Sağ Bek</option>
+                            <option value="4">CDM - Defansif Orta</option>
+                            <option value="5">CM - Merkez Orta</option>
+                            <option value="6">CAM - Ofansif Orta</option>
+                            <option value="7">LM - Sol Orta</option>
+                            <option value="8">RM - Sağ Orta</option>
+                            <option value="9">LW - Sol Kanat</option>
+                            <option value="10">RW - Sağ Kanat</option>
+                            <option value="11">ST - Santrafor</option>
+                            <option value="12">CF - İkinci Forvet</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="label">Takım *</label>
+                        <input @bind="_team" type="text" placeholder="Örn: Real Madrid B" class="input" />
+                    </div>
+                    <div>
+                        <label class="label">Lig *</label>
+                        <input @bind="_league" type="text" placeholder="Örn: Süper Lig" class="input" />
+                    </div>
+                    <div>
+                        <label class="label">Ülke *</label>
+                        <input @bind="_country" type="text" placeholder="Örn: Türkiye" class="input" />
+                    </div>
+                    <div>
+                        <label class="label">Fotoğraf URL <span class="text-scout-600">(opsiyonel)</span></label>
+                        <input @bind="_imageUrl" type="url" placeholder="https://..." class="input" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis -->
+            <div class="card">
+                <h3 class="text-sm font-semibold text-scout-300 uppercase tracking-wider mb-4">Analiz</h3>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="label">Video Linki *</label>
+                        <input @bind="_videoUrl" type="url" placeholder="https://youtube.com/..." class="input" />
+                        <p class="text-xs text-scout-600 mt-1">YouTube, Wyscout vb. kabul edilir</p>
+                    </div>
+                    <div>
+                        <label class="label">
+                            Analiz Yazısı *
+                            <span class="text-scout-600 font-normal ml-1">(min. 50 karakter)</span>
+                        </label>
+                        <textarea @bind="_analysisContent" rows="8"
+                                  placeholder="Oyuncunun teknik özellikleri, güçlü/zayıf yanları, potansiyeli... Boş veya anlamsız analizler reddedilir."
+                                  class="input resize-none"></textarea>
+                        <div class="flex justify-between mt-1">
+                            <p class="text-xs text-scout-600">Minimum 50, maksimum 5000 karakter</p>
+                            <span class="text-xs @((_analysisContent?.Length ?? 0) < 50 ? "text-red-500" : "text-pitch-500")">
+                                @(_analysisContent?.Length ?? 0)/5000
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <div class="rounded-lg bg-red-950 border border-red-800 p-4 text-sm text-red-300">
+                    @_errorMessage
+                </div>
+            }
+
+            <div class="flex justify-end gap-3">
+                <a href="/players" class="btn-secondary">İptal</a>
+                <button @onclick="Submit" disabled="@_submitting" class="btn-primary">
+                    @if (_submitting)
+                    {
+                        <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                        </svg>
+                        Gönderiliyor...
+                    }
+                    else
+                    {
+                        <text>Öneri Gönder</text>
+                    }
+                </button>
+            </div>
+        </div>
+    }
+
+</div>
+
+@code {
+    private string? _name;
+    private int _age;
+    private string? _position;
+    private string? _team;
+    private string? _league;
+    private string? _country;
+    private string? _imageUrl;
+    private string? _videoUrl;
+    private string? _analysisContent;
+    private bool _submitting;
+    private bool _submitted;
+    private string? _errorMessage;
+
+    private async Task Submit()
+    {
+        _errorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(_name) || _age == 0 || string.IsNullOrWhiteSpace(_position) ||
+            string.IsNullOrWhiteSpace(_team) || string.IsNullOrWhiteSpace(_league) ||
+            string.IsNullOrWhiteSpace(_country) || string.IsNullOrWhiteSpace(_videoUrl) ||
+            string.IsNullOrWhiteSpace(_analysisContent))
+        {
+            _errorMessage = "Lütfen tüm zorunlu alanları doldurun.";
+            return;
+        }
+
+        if (_analysisContent.Length < 50)
+        {
+            _errorMessage = "Analiz yazısı en az 50 karakter olmalıdır.";
+            return;
+        }
+
+        _submitting = true;
+
+        var result = await Api.SuggestPlayerAsync(new SuggestPlayerRequest
+        {
+            Name = _name,
+            Age = _age,
+            Position = _position,
+            Team = _team,
+            League = _league,
+            Country = _country,
+            ImageUrl = _imageUrl,
+            VideoUrl = _videoUrl!,
+            AnalysisContent = _analysisContent!
+        });
+
+        _submitting = false;
+
+        if (result.IsSuccess)
+            _submitted = true;
+        else
+            _errorMessage = result.Messages?.FirstOrDefault()?.Code ?? "Bir hata oluştu.";
+    }
+
+    private void ResetForm()
+    {
+        _name = null; _age = 0; _position = null; _team = null;
+        _league = null; _country = null; _imageUrl = null;
+        _videoUrl = null; _analysisContent = null; _submitted = false;
+    }
+}

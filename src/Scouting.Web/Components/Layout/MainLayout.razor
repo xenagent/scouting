@@ -1,0 +1,19 @@
+@inherits LayoutComponentBase
+
+<div class="min-h-screen flex flex-col bg-scout-950">
+    <NavMenu />
+    <main class="flex-1">
+        @Body
+    </main>
+    <footer class="border-t border-scout-800 py-8 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-2">
+                    <span class="font-display text-xl text-pitch-500">SCOUT</span>
+                    <span class="text-scout-400 text-sm">— Kaliteli scouting verisi üretim platformu</span>
+                </div>
+                <p class="text-scout-600 text-xs">Faz 1 — İlk 100 kaliteli oyuncu datasını oluştur</p>
+            </div>
+        </div>
+    </footer>
+</div>

@@ -1,0 +1,94 @@
+@page "/register"
+@inject IScoutingApiService Api
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<PageTitle>Kayıt Ol — Scout</PageTitle>
+
+<div class="max-w-sm mx-auto px-4 py-16">
+
+    <div class="text-center mb-8">
+        <span class="font-display text-3xl text-white">SCOUT</span>
+        <p class="text-scout-400 mt-2">Hesap oluşturun</p>
+    </div>
+
+    @if (_registered)
+    {
+        <div class="card text-center py-8">
+            <div class="text-4xl mb-4">✓</div>
+            <h2 class="text-lg font-bold text-white mb-2">Kayıt başarılı!</h2>
+            <p class="text-scout-400 mb-4">Artık öneri ekleyebilir ve oy verebilirsiniz.</p>
+            <a href="/login" class="btn-primary">Giriş Yap</a>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="space-y-4">
+                <div>
+                    <label class="label">Kullanıcı Adı</label>
+                    <input @bind="_username" type="text" placeholder="scout_ahmet" class="input" />
+                    <p class="text-xs text-scout-600 mt-1">Harf, rakam ve alt çizgi. 3-32 karakter.</p>
+                </div>
+                <div>
+                    <label class="label">E-posta</label>
+                    <input @bind="_email" type="email" placeholder="ornek@email.com" class="input" />
+                </div>
+                <div>
+                    <label class="label">Şifre</label>
+                    <input @bind="_password" type="password" placeholder="Min. 6 karakter" class="input" />
+                </div>
+
+                @if (!string.IsNullOrEmpty(_error))
+                {
+                    <div class="rounded-lg bg-red-950 border border-red-800 p-3 text-sm text-red-300">
+                        @_error
+                    </div>
+                }
+
+                <button @onclick="Submit" disabled="@_loading" class="btn-primary w-full">
+                    @(_loading ? "Kayıt yapılıyor..." : "Kayıt Ol")
+                </button>
+            </div>
+
+            <p class="text-center text-sm text-scout-500 mt-4">
+                Zaten hesabın var mı?
+                <a href="/login" class="text-pitch-400 hover:text-pitch-300">Giriş yap</a>
+            </p>
+        </div>
+    }
+</div>
+
+@code {
+    private string _username = "";
+    private string _email = "";
+    private string _password = "";
+    private bool _loading;
+    private bool _registered;
+    private string? _error;
+
+    private async Task Submit()
+    {
+        _error = null;
+        _loading = true;
+
+        var result = await Api.RegisterAsync(new RegisterRequest
+        {
+            Username = _username,
+            Email = _email,
+            Password = _password
+        });
+
+        _loading = false;
+
+        if (result.IsSuccess)
+            _registered = true;
+        else
+            _error = result.Messages?.FirstOrDefault()?.Code switch
+            {
+                "AUTH_EMAIL_ALREADY_EXISTS" => "Bu e-posta zaten kullanımda.",
+                "AUTH_USERNAME_ALREADY_EXISTS" => "Bu kullanıcı adı zaten alınmış.",
+                _ => "Bir hata oluştu. Lütfen tekrar deneyin."
+            };
+    }
+}

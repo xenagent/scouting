@@ -1,0 +1,130 @@
+@page "/players"
+@inject IScoutingApiService Api
+
+<PageTitle>Oyuncular — Scout</PageTitle>
+<HeadContent>
+    <meta name="description" content="Onaylı futbol oyuncularını keşfet. Pozisyon, lig ve ülkeye göre filtrele." />
+</HeadContent>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <div class="mb-8">
+        <h1 class="font-display text-4xl text-white mb-2">OYUNCULAR</h1>
+        <p class="text-scout-400">Admin onaylı scouting verileri</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+                <label class="label">Arama</label>
+                <input type="text" @bind="_search" @bind:event="oninput" @onkeypress="OnSearchKeyPress"
+                       placeholder="Oyuncu veya takım ara..."
+                       class="input" />
+            </div>
+            <div>
+                <label class="label">Pozisyon</label>
+                <select @bind="_position" class="input">
+                    <option value="">Tümü</option>
+                    <option value="GK">GK - Kaleci</option>
+                    <option value="CB">CB - Stoper</option>
+                    <option value="LB">LB - Sol Bek</option>
+                    <option value="RB">RB - Sağ Bek</option>
+                    <option value="CDM">CDM - Defansif Orta</option>
+                    <option value="CM">CM - Merkez Orta</option>
+                    <option value="CAM">CAM - Ofansif Orta</option>
+                    <option value="LW">LW - Sol Kanat</option>
+                    <option value="RW">RW - Sağ Kanat</option>
+                    <option value="ST">ST - Forvet</option>
+                </select>
+            </div>
+            <div>
+                <label class="label">Lig</label>
+                <input type="text" @bind="_league" placeholder="Süper Lig, Premier League..."
+                       class="input" />
+            </div>
+            <div>
+                <label class="label">Ülke</label>
+                <input type="text" @bind="_country" placeholder="Türkiye, İngiltere..."
+                       class="input" />
+            </div>
+        </div>
+        <div class="flex justify-end mt-4">
+            <button @onclick="Search" class="btn-primary">Filtrele</button>
+        </div>
+    </div>
+
+    <!-- Results -->
+    @if (_loading)
+    {
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            @for (int i = 0; i < 8; i++)
+            {
+                <div class="card animate-pulse">
+                    <div class="h-36 bg-scout-800 rounded-lg mb-4"></div>
+                    <div class="h-4 bg-scout-800 rounded w-3/4 mb-2"></div>
+                    <div class="h-3 bg-scout-800 rounded w-1/2 mb-2"></div>
+                    <div class="h-3 bg-scout-800 rounded w-2/3"></div>
+                </div>
+            }
+        </div>
+    }
+    else if (_players?.Count == 0)
+    {
+        <div class="text-center py-24 text-scout-500">
+            <p class="text-5xl mb-4">⚽</p>
+            <p class="text-lg">Oyuncu bulunamadı</p>
+        </div>
+    }
+    else
+    {
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            @foreach (var player in _players!)
+            {
+                <PlayerCard Player="player" />
+            }
+        </div>
+
+        @if (_players!.Count == 20)
+        {
+            <div class="flex justify-center mt-10">
+                <button @onclick="LoadMore" class="btn-secondary">Daha Fazla Yükle</button>
+            </div>
+        }
+    }
+
+</div>
+
+@code {
+    private List<PlayerListItem>? _players;
+    private bool _loading = true;
+    private string? _search;
+    private string? _position;
+    private string? _league;
+    private string? _country;
+    private int _page = 1;
+
+    protected override async Task OnInitializedAsync() => await Search();
+
+    private async Task Search()
+    {
+        _loading = true;
+        _page = 1;
+        var result = await Api.GetPlayersAsync(_search, _position, _league, _country, _page);
+        _players = result.Data;
+        _loading = false;
+    }
+
+    private async Task LoadMore()
+    {
+        _page++;
+        var result = await Api.GetPlayersAsync(_search, _position, _league, _country, _page);
+        _players ??= [];
+        _players.AddRange(result.Data);
+    }
+
+    private async Task OnSearchKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await Search();
+    }
+}

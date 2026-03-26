@@ -1,0 +1,76 @@
+using scommon;
+
+namespace Scouting.API.Domains.UserEntity;
+
+public class User : BaseModel
+{
+    private User() { }
+
+    public string? Email { get; private set; }
+    public string? Username { get; private set; }
+    public string? PasswordHash { get; private set; }
+    public string? Bio { get; private set; }
+    public string? AvatarUrl { get; private set; }
+    public UserRole Role { get; private set; } = UserRole.User;
+    public int ApprovedAnalysisCount { get; private set; }
+    public int FollowerCount { get; private set; }
+
+    public static ResultDomain<User> Create(string email, string username, string passwordHash)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return ResultDomain<User>.Error(new MessageItem
+            {
+                Code = ErrorCodes.COMMON_MESSAGE_VALUE_EMPTY,
+                Property = nameof(email),
+                Table = nameof(User)
+            });
+
+        if (string.IsNullOrWhiteSpace(username))
+            return ResultDomain<User>.Error(new MessageItem
+            {
+                Code = ErrorCodes.COMMON_MESSAGE_VALUE_EMPTY,
+                Property = nameof(username),
+                Table = nameof(User)
+            });
+
+        if (username.Length > 32)
+            return ResultDomain<User>.Error(new MessageItem
+            {
+                Code = ErrorCodes.COMMON_MESSAGE_VALUE_MAX_LENGHT_ERROR,
+                Property = nameof(username),
+                Table = nameof(User)
+            });
+
+        return ResultDomain<User>.Ok(new User
+        {
+            Email = email.ToLowerInvariant().Trim(),
+            Username = username.Trim(),
+            PasswordHash = passwordHash,
+            Role = UserRole.User
+        });
+    }
+
+    public void IncrementApprovedAnalysisCount() => ApprovedAnalysisCount++;
+    public void IncrementFollowerCount() => FollowerCount++;
+    public void DecrementFollowerCount()
+    {
+        if (FollowerCount > 0) FollowerCount--;
+    }
+
+    public ResultDomain UpdateProfile(string? bio, string? avatarUrl)
+    {
+        if (bio is not null && bio.Length > 512)
+            return ResultDomain.Error(new MessageItem
+            {
+                Code = ErrorCodes.COMMON_MESSAGE_VALUE_MAX_LENGHT_ERROR,
+                Property = nameof(bio),
+                Table = nameof(User)
+            });
+
+        Bio = bio;
+        AvatarUrl = avatarUrl;
+        return ResultDomain.Ok();
+    }
+
+    public void MakeAdmin() => Role = UserRole.Admin;
+}

@@ -1,0 +1,69 @@
+@page "/login"
+@inject IScoutingApiService Api
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<PageTitle>Giriş — Scout</PageTitle>
+
+<div class="max-w-sm mx-auto px-4 py-16">
+
+    <div class="text-center mb-8">
+        <span class="font-display text-3xl text-white">SCOUT</span>
+        <p class="text-scout-400 mt-2">Hesabınıza giriş yapın</p>
+    </div>
+
+    <div class="card">
+        <div class="space-y-4">
+            <div>
+                <label class="label">E-posta</label>
+                <input @bind="_email" type="email" placeholder="ornek@email.com" class="input" />
+            </div>
+            <div>
+                <label class="label">Şifre</label>
+                <input @bind="_password" type="password" placeholder="••••••••" class="input" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="rounded-lg bg-red-950 border border-red-800 p-3 text-sm text-red-300">
+                    @_error
+                </div>
+            }
+
+            <button @onclick="Submit" disabled="@_loading" class="btn-primary w-full">
+                @(_loading ? "Giriş yapılıyor..." : "Giriş Yap")
+            </button>
+        </div>
+
+        <p class="text-center text-sm text-scout-500 mt-4">
+            Hesabın yok mu?
+            <a href="/register" class="text-pitch-400 hover:text-pitch-300">Kayıt ol</a>
+        </p>
+    </div>
+</div>
+
+@code {
+    private string _email = "";
+    private string _password = "";
+    private bool _loading;
+    private string? _error;
+
+    private async Task Submit()
+    {
+        _error = null;
+        _loading = true;
+
+        var result = await Api.LoginAsync(new LoginRequest { Email = _email, Password = _password });
+        _loading = false;
+
+        if (result.IsSuccess && result.Data is not null)
+        {
+            Api.SetToken(result.Data.Token);
+            Nav.NavigateTo("/");
+        }
+        else
+        {
+            _error = "E-posta veya şifre hatalı.";
+        }
+    }
+}
