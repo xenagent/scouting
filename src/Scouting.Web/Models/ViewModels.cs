@@ -35,7 +35,22 @@ public class PlayerDetailVm
     public int DownvoteCount { get; set; }
     public string SuggestedByUsername { get; set; } = "";
     public DateTime CreatedAt { get; set; }
-    public List<AnalysisVm> Analyses { get; set; } =  [];
+    public List<AnalysisVm> Analyses { get; set; } = [];
+
+    // Transfermarkt
+    public string? TransfermarktUrl { get; set; }
+    public decimal? MarketValue { get; set; }
+    public decimal? PreviousMarketValue { get; set; }
+    public DateTime? LastTransfermarktSync { get; set; }
+    public List<TmSeasonStatVm> SeasonStats { get; set; } = [];
+}
+
+public class TmSeasonStatVm
+{
+    public string Season { get; set; } = "";
+    public int Matches { get; set; }
+    public int Goals { get; set; }
+    public int Assists { get; set; }
 }
 
 public class AnalysisVm
