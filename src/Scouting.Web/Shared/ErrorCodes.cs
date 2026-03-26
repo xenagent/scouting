@@ -21,4 +21,6 @@ public static class ErrorCodes
     public const string LIKE_ALREADY_LIKED = "LIKE_ALREADY_LIKED";
     public const string LIKE_NOT_LIKED = "LIKE_NOT_LIKED";
     public const string ANALYSIS_FLAGGED_AS_DUPLICATE = "ANALYSIS_FLAGGED_AS_DUPLICATE";
+    public const string PLAYER_DUPLICATE_TRANSFERMARKT_ID = "PLAYER_DUPLICATE_TRANSFERMARKT_ID";
+    public const string TRANSFERMARKT_INVALID_URL = "TRANSFERMARKT_INVALID_URL";
 }

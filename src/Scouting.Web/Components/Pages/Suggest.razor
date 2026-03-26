@@ -1,6 +1,7 @@
 @page "/suggest"
 @attribute [Authorize]
 @inject IPlayerService PlayerService
+@inject ITransfermarktService TmService
 @inject AuthenticationStateProvider AuthState
 @rendermode InteractiveServer
 
@@ -73,6 +74,23 @@
                         <label class="label">Ülke *</label>
                         <input @bind="_input.Country" type="text" placeholder="Türkiye" class="input" />
                     </div>
+                    <div class="sm:col-span-2">
+                        <label class="label">
+                            Transfermarkt URL
+                            <span class="text-scout-600 font-normal">(isteğe bağlı — duplicate kontrolü için)</span>
+                        </label>
+                        <input @bind="_input.TransfermarktUrl" @bind:event="oninput" @oninput="OnTmUrlInput"
+                               type="url" placeholder="https://www.transfermarkt.com.tr/.../spieler/990148"
+                               class="input" />
+                        @if (!string.IsNullOrEmpty(_tmIdPreview))
+                        {
+                            <p class="text-xs text-pitch-400 mt-1">Tespit edilen TM ID: <strong>@_tmIdPreview</strong></p>
+                        }
+                        else if (!string.IsNullOrEmpty(_input.TransfermarktUrl))
+                        {
+                            <p class="text-xs text-red-400 mt-1">Geçerli bir Transfermarkt oyuncu URL'i giriniz.</p>
+                        }
+                    </div>
                 </div>
                 <p class="text-xs text-scout-600 mt-3">Oyuncu fotoğrafı admin tarafından yüklenecektir.</p>
             </div>
@@ -120,11 +138,18 @@
     private bool _submitted;
     private string? _error;
     private Guid _userId;
+    private string? _tmIdPreview;
 
     protected override async Task OnInitializedAsync()
     {
         var auth = await AuthState.GetAuthenticationStateAsync();
         Guid.TryParse(auth.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out _userId);
+    }
+
+    private void OnTmUrlInput(ChangeEventArgs e)
+    {
+        var url = e.Value?.ToString() ?? "";
+        _tmIdPreview = TmService.ExtractTmId(url);
     }
 
     private async Task Submit()
@@ -155,7 +180,9 @@
         else
             _error = result.ErrorCode switch
             {
-                ErrorCodes.ANALYSIS_CONTENT_TOO_SHORT => "Analiz çok kısa.",
+                ErrorCodes.ANALYSIS_CONTENT_TOO_SHORT       => "Analiz çok kısa.",
+                ErrorCodes.TRANSFERMARKT_INVALID_URL         => "Geçerli bir Transfermarkt oyuncu URL'i giriniz.",
+                ErrorCodes.PLAYER_DUPLICATE_TRANSFERMARKT_ID => "Bu Transfermarkt ID'sine sahip oyuncu zaten sistemde kayıtlı.",
                 _ => "Bir hata oluştu: " + result.ErrorCode
             };
     }

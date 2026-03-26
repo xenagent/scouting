@@ -12,8 +12,13 @@ namespace Scouting.Web.Services;
 public class PlayerService : IPlayerService
 {
     private readonly AppDbContext _db;
+    private readonly ITransfermarktService _tm;
 
-    public PlayerService(AppDbContext db) => _db = db;
+    public PlayerService(AppDbContext db, ITransfermarktService tm)
+    {
+        _db = db;
+        _tm = tm;
+    }
 
     public async Task<ServiceListResult<PlayerListItemVm>> GetListAsync(
         PlayerFilter filter, CancellationToken ct = default)
@@ -214,6 +219,22 @@ public class PlayerService : IPlayerService
         if (!Enum.TryParse<PlayerPosition>(input.Position, out var position))
             return ServiceResult.Fail(ErrorCodes.COMMON_MESSAGE_INVALID_VALUE);
 
+        // ── Transfermarkt deduplication ───────────────────────────────────────
+        string? tmId = null;
+        if (!string.IsNullOrWhiteSpace(input.TransfermarktUrl))
+        {
+            tmId = _tm.ExtractTmId(input.TransfermarktUrl);
+            if (tmId is null)
+                return ServiceResult.Fail(ErrorCodes.TRANSFERMARKT_INVALID_URL);
+
+            var exists = await _db.Players
+                .AsNoTracking()
+                .AnyAsync(p => p.TransfermarktId == tmId, ct);
+
+            if (exists)
+                return ServiceResult.Fail(ErrorCodes.PLAYER_DUPLICATE_TRANSFERMARKT_ID);
+        }
+
         var playerResult = Player.Create(
             input.Name, input.Age, position,
             input.Team, input.League, input.Country, userId);
@@ -222,8 +243,12 @@ public class PlayerService : IPlayerService
             return ServiceResult.Fail(playerResult.Messages?.FirstOrDefault()?.Code ?? "UNKNOWN");
 
         var player = playerResult.Data!;
+
         if (!string.IsNullOrWhiteSpace(input.ImageUrl))
             player.SetImageUrl(input.ImageUrl);
+
+        if (tmId is not null)
+            player.SetTransfermarkt(tmId, input.TransfermarktUrl!);
 
         var analysisResult = Analysis.Create(player.Id, input.VideoUrl, input.AnalysisContent, userId,
             technical: null, tactical: null, physical: null, strengths: null, weaknesses: null);

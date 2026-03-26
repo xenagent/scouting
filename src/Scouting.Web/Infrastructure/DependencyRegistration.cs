@@ -16,6 +16,13 @@ public static class DependencyRegistration
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
     {
+        // Transfermarkt scrape.do HTTP client
+        services.Configure<TransfermarktOptions>(
+            configuration.GetSection("Transfermarkt"));
+        services.AddHttpClient<TransfermarktService>();
+        services.AddScoped<ITransfermarktService, TransfermarktService>();
+        services.AddHostedService<TransfermarktSyncJob>();
+
         // DbContext — InMemory for development, PostgreSQL for production
         services.AddDbContext<AppDbContext>((provider, options) =>
         {

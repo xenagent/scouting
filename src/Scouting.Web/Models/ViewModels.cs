@@ -174,4 +174,7 @@ public class SuggestPlayerInput
     public string? ImageUrl { get; set; }
     public string VideoUrl { get; set; } = "";
     public string AnalysisContent { get; set; } = "";
+
+    /// <summary>Optional: full Transfermarkt profile URL, e.g. https://www.transfermarkt.com.tr/.../spieler/990148</summary>
+    public string? TransfermarktUrl { get; set; }
 }

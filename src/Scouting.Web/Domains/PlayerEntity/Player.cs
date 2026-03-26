@@ -1,4 +1,6 @@
+using System.Text.Json;
 using scommon;
+using Scouting.Web.Services;
 using Scouting.Web.Shared;
 
 namespace Scouting.Web.Domains.PlayerEntity;
@@ -18,6 +20,21 @@ public class Player : BaseUserTrackModel
     public PlayerStatus Status { get; private set; } = PlayerStatus.Pending;
     public int Score { get; private set; }
     public string? RejectionReason { get; private set; }
+
+    // Transfermarkt
+    public string? TransfermarktId { get; private set; }
+    public string? TransfermarktUrl { get; private set; }
+    public decimal? MarketValue { get; private set; }         // in millions EUR
+    public DateTime? ContractUntil { get; private set; }
+    public string? Height { get; private set; }               // e.g. "1,82 m"
+    public string? PreferredFoot { get; private set; }        // Sol/Sağ/Her İkisi
+    public DateTime? LastTransfermarktSync { get; private set; }
+
+    // Sezon istatistikleri JSON olarak saklanır (ayrı tablo gerektirmez)
+    public string? SeasonStatsJson { get; private set; }
+
+    // Piyasa değeri değişimini takip etmek için bir önceki sync değeri
+    public decimal? PreviousMarketValue { get; private set; }
 
     public static ResultDomain<Player> Create(
         string name, int age, PlayerPosition position,
@@ -68,6 +85,47 @@ public class Player : BaseUserTrackModel
 
     public void UpdateScore(int delta) => Score += delta;
     public void SetImageUrl(string? imageUrl) => ImageUrl = imageUrl;
+
+    public void SetTransfermarkt(string tmId, string tmUrl)
+    {
+        TransfermarktId = tmId;
+        TransfermarktUrl = tmUrl;
+    }
+
+    /// <summary>
+    /// TM'den gelen veriyle oyuncu bilgilerini günceller.
+    /// Piyasa değeri artışı → +2 skor, %10+ düşüş → -1 skor.
+    /// </summary>
+    public void UpdateFromTransfermarkt(TransfermarktPlayerData data)
+    {
+        if (!string.IsNullOrWhiteSpace(data.Team)) Team = data.Team;
+        if (data.Age.HasValue && data.Age >= 13 && data.Age <= 50) Age = data.Age.Value;
+
+        // Piyasa değeri trendi → skor etkisi
+        if (data.MarketValueMillions.HasValue && MarketValue.HasValue)
+        {
+            if (data.MarketValueMillions > MarketValue)
+                Score += 2;                                         // Değer arttı
+            else if (data.MarketValueMillions < MarketValue * 0.9m)
+                Score = Math.Max(0, Score - 1);                     // %10+ düştü
+        }
+
+        PreviousMarketValue = MarketValue;
+        MarketValue = data.MarketValueMillions;
+
+        if (data.SeasonStats.Count > 0)
+            SeasonStatsJson = JsonSerializer.Serialize(data.SeasonStats);
+
+        LastTransfermarktSync = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// SeasonStatsJson alanını deserialize ederek döner.
+    /// </summary>
+    public List<PlayerSeasonStats> GetSeasonStats()
+        => string.IsNullOrEmpty(SeasonStatsJson)
+            ? []
+            : JsonSerializer.Deserialize<List<PlayerSeasonStats>>(SeasonStatsJson) ?? [];
 
     private static string GenerateSlug(string name, Guid id)
     {

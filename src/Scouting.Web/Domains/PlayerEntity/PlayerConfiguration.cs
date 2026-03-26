@@ -23,7 +23,13 @@ public class PlayerConfiguration : BaseConfiguration<Player>
             .HasMaxLength(16)
             .HasConversion(e => e.ToString(), e => Enum.Parse<PlayerStatus>(e))
             .IsRequired();
+        model.Property(e => e.TransfermarktId).HasMaxLength(32);
+        model.Property(e => e.TransfermarktUrl).HasMaxLength(512);
+        model.Property(e => e.Height).HasMaxLength(16);
+        model.Property(e => e.PreferredFoot).HasMaxLength(16);
+        model.Property(e => e.SeasonStatsJson).HasColumnType("text");
         model.HasIndex(e => e.Slug).IsUnique();
+        model.HasIndex(e => e.TransfermarktId).IsUnique().HasFilter("\"TransfermarktId\" IS NOT NULL");
         model.HasIndex(e => e.Status);
         model.HasIndex(e => e.Score);
         base.Map(model);
