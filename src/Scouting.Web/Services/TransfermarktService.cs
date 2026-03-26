@@ -15,13 +15,13 @@ public class TransfermarktOptions
 file static class Selectors
 {
     // leistungsdaten sayfası header bilgileri
-    public const string Name        = "//h1[contains(@class,'data-header__headline-wrapper')]";
-    public const string Age         = "//li[contains(.,'Yaş') or contains(.,'Age')]/span";
-    public const string Team        = "//span[contains(@class,'data-header__club')]/a";
+    public const string Name = "//h1[contains(@class,'data-header__headline-wrapper')]";
+    public const string Age = "//li[contains(.,'Yaş') or contains(.,'Age')]/span";
+    public const string Team = "//span[contains(@class,'data-header__club')]/a";
     public const string MarketValue = "//a[contains(@class,'market-value')]";
 
     // Sezon istatistik tablosu — her satır bir sezonu temsil eder
-    public const string TableRows   = "//table[contains(@class,'items')]/tbody/tr";
+    public const string TableRows = "//table[contains(@class,'items')]/tbody/tr";
 }
 
 // ── Service ───────────────────────────────────────────────────────────────────
@@ -85,12 +85,12 @@ public partial class TransfermarktService : ITransfermarktService
 
         return new TransfermarktPlayerData
         {
-            TmId         = tmId,
-            Name         = GetText(doc, Selectors.Name),
-            Age          = ParseAge(GetText(doc, Selectors.Age)),
-            Team         = GetText(doc, Selectors.Team),
-            MarketValue  = ParseMarketValue(GetText(doc, Selectors.MarketValue)),
-            SeasonStats  = ParseSeasonStats(doc)
+            TmId = tmId,
+            Name = GetText(doc, Selectors.Name),
+            Age = ParseAge(GetText(doc, Selectors.Age)),
+            Team = GetText(doc, Selectors.Team),
+            MarketValue = ParseMarketValue(GetText(doc, Selectors.MarketValue)),
+            SeasonStats = ParseSeasonStats(doc)
         };
     }
 
@@ -134,10 +134,10 @@ public partial class TransfermarktService : ITransfermarktService
 
     private static bool TryParseDecimal(string s, out decimal result)
         => decimal.TryParse(
-               s.Replace(",", "."),
-               System.Globalization.NumberStyles.Any,
-               System.Globalization.CultureInfo.InvariantCulture,
-               out result);
+            s.Replace(",", "."),
+            System.Globalization.NumberStyles.Any,
+            System.Globalization.CultureInfo.InvariantCulture,
+            out result);
 
     /// <summary>
     /// items tablosundaki her satırı sezon istatistiğine dönüştürür.
@@ -163,9 +163,9 @@ public partial class TransfermarktService : ITransfermarktService
 
             list.Add(new PlayerSeasonStats
             {
-                Season  = cells[0].InnerText.Trim(),
+                Season = cells[0].InnerText.Trim(),
                 Matches = ParseInt(cells[4].InnerText),
-                Goals   = ParseInt(cells[5].InnerText),
+                Goals = ParseInt(cells[5].InnerText),
                 Assists = ParseInt(cells[6].InnerText)
             });
         }

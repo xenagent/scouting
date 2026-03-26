@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using scommon;
+using Scouting.Web;
+using Scouting.Web.DbSettings;
 using Scouting.Web.Infrastructure;
 
 namespace Scouting.Web.Domains.VoteEntity;
@@ -12,7 +13,6 @@ public class VoteConfiguration : BaseConfiguration<Vote>
             .HasMaxLength(8)
             .HasConversion(e => e.ToString(), e => Enum.Parse<VoteType>(e))
             .IsRequired();
-        model.HasIndex(e => new { e.PlayerId, e.UserId }).IsUnique();
         base.Map(model);
     }
 

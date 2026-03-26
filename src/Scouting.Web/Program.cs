@@ -1,9 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
-using Scouting.Web.Components;
+using Scouting.Web;
 using Scouting.Web.Infrastructure;
 using Scouting.Web.Services;
 

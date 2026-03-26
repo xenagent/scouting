@@ -1,4 +1,4 @@
-using scommon;
+using Scouting.Web;
 
 namespace Scouting.Web.Domains.VoteEntity;
 

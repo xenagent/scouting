@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using scommon.Auths;
+using Scouting.Web.Auths;
 
 namespace Scouting.Web.Services;
 

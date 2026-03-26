@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using scommon;
+using Scouting.Web;
+using Scouting.Web.DbSettings;
 using Scouting.Web.Infrastructure;
 
 namespace Scouting.Web.Domains.AnalysisEntity;
@@ -17,9 +18,7 @@ public class AnalysisConfiguration : BaseConfiguration<Analysis>
             .HasMaxLength(16)
             .HasConversion(e => e.ToString(), e => Enum.Parse<AnalysisStatus>(e))
             .IsRequired();
-        model.HasIndex(e => e.PlayerId);
-        model.HasIndex(e => e.Status);
-        model.HasIndex(e => e.CreatedUserId);
+
         base.Map(model);
     }
 

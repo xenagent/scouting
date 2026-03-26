@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using scommon;
-using scommon.Auths;
-using scommon.DbSettings;
+using Scouting.Web;
+using Scouting.Web.Auths;
+using Scouting.Web.DbSettings;
 using Scouting.Web.Domains.AnalysisEntity;
 using Scouting.Web.Domains.AnalysisLikeEntity;
 using Scouting.Web.Domains.PlayerEntity;
