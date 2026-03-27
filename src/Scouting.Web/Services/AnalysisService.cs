@@ -129,10 +129,6 @@ public class AnalysisService : IAnalysisService
         if (player is null)
             return ServiceResult.Fail(ErrorCodes.COMMON_MESSAGE_RECORD_NOT_FOUND);
 
-        // Oyuncunun TM verisi varsa, analiz girişi anında güncellemeyi tetikle
-        if (!string.IsNullOrEmpty(player.TransfermarktId))
-            _tmQueue.Enqueue(player.TransfermarktId);
-
         var result = Analysis.Create(
             playerId, input.VideoUrl, input.General, userId,
             input.Technical, input.Tactical, input.Physical,
@@ -196,6 +192,19 @@ public class AnalysisService : IAnalysisService
 
         var scout = await _db.Users.FirstOrDefaultAsync(u => u.Id == analysis.CreatedUserId, ct);
         scout?.IncrementApprovedAnalysisCount();
+
+        // Onay anındaki piyasa değerini baz olarak kaydet,
+        // ardından TM'den taze veri çekmeyi tetikle.
+        var player = await _db.Players.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == analysis.PlayerId, ct);
+
+        if (player is not null)
+        {
+            analysis.SetApprovalBaseline(player.MarketValue);
+
+            if (!string.IsNullOrEmpty(player.TransfermarktId))
+                _tmQueue.Enqueue(player.TransfermarktId);
+        }
 
         await _db.SaveChangesAsync(ct);
         return ServiceResult.Ok();

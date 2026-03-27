@@ -41,6 +41,12 @@ public class Analysis : BaseUserTrackModel
     public int      PriorAnalysisCountOnPlayer { get; private set; }   // kaçıncı analistsin?
 
     /// <summary>
+    /// Onay anındaki piyasa değeri — periyodik sync'te karşılaştırma baz noktası.
+    /// Her bonus ödendikten sonra yeni değere güncellenir (kümülatif takip).
+    /// </summary>
+    public decimal? ApprovalBaselineMarketValue { get; private set; }
+
+    /// <summary>
     /// Keşif katsayısı: analiz yapıldığındaki piyasa değeri, yaş ve analiz sırası
     /// göz önüne alınarak hesaplanır.
     /// Danimarka ligindeki bilinmeyen 18 yaşındaki ilk analizi → yüksek katsayı.
@@ -145,6 +151,17 @@ public class Analysis : BaseUserTrackModel
         AIScore = score;
         IsFlaggedAsDuplicate = isDuplicate;
     }
+
+    /// <summary>
+    /// Onay anında çağrılır — gelecekteki bonus karşılaştırması için baz değer.
+    /// Bonus ödendikçe UpdateApprovalBaseline ile ileri taşınır.
+    /// </summary>
+    public void SetApprovalBaseline(decimal? marketValue) =>
+        ApprovalBaselineMarketValue = marketValue;
+
+    /// <summary>Bonus ödendikten sonra baz değeri yeni değere taşır (tekrar ödemeyi önler).</summary>
+    public void UpdateApprovalBaseline(decimal newValue) =>
+        ApprovalBaselineMarketValue = newValue;
 
     /// <summary>Analiz kaydedildikten hemen sonra çağrılır — oyuncunun o andaki snapshot'ını saklar.</summary>
     public void SetDiscoveryContext(decimal? playerMarketValueMillions, int? playerAge, int priorAnalysisCount)
