@@ -147,6 +147,9 @@ public class PlayerService : IPlayerService
                 FilledSectionsCount = a.FilledSectionsCount,
                 AISummary = a.AISummary,
                 AIScore = a.AIScore,
+                AIOriginalityScore = a.AIOriginalityScore,
+                AIDepthScore = a.AIDepthScore,
+                EstimatedReadingMinutes = a.EstimatedReadingMinutes,
                 IsFlaggedAsDuplicate = a.IsFlaggedAsDuplicate,
                 LikeCount = a.LikeCount,
                 ScoutUsername = u != null ? u.Username! : "anonymous",
@@ -193,10 +196,12 @@ public class PlayerService : IPlayerService
             if (stats is not null)
                 player.SeasonStats = stats.Select(s => new TmSeasonStatVm
                 {
-                    Season = s.Season,
-                    Matches = s.Matches,
-                    Goals = s.Goals,
-                    Assists = s.Assists
+                    Season       = s.Season,
+                    Competition  = s.Competition,
+                    Matches      = s.Matches,
+                    MinutesPlayed = s.MinutesPlayed,
+                    Goals        = s.Goals,
+                    Assists      = s.Assists
                 }).ToList();
         }
 

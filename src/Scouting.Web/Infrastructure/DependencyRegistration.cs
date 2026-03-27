@@ -21,6 +21,12 @@ public static class DependencyRegistration
         services.Configure<TransfermarktOptions>(
             configuration.GetSection("Transfermarkt"));
         services.AddHttpClient<TransfermarktService>();
+        services.AddHttpClient("TmImage", c =>
+        {
+            c.DefaultRequestHeaders.Add("User-Agent",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36");
+            c.Timeout = TimeSpan.FromSeconds(30);
+        });
         services.AddScoped<ITransfermarktService, TransfermarktService>();
         services.AddSingleton<TmSyncQueue>();
         services.AddHostedService<TransfermarktSyncJob>();
@@ -54,7 +60,11 @@ public static class DependencyRegistration
         services.AddScoped<IScouterService, ScouterService>();
         services.AddScoped<IFileService, FileService>();
         services.AddSingleton<IJwtService, JwtService>();
-        services.AddSingleton<IAIAnalysisService, StubAIAnalysisService>();
+        // AI evaluation: use Bedrock when configured, stub otherwise
+        if (!string.IsNullOrWhiteSpace(configuration["Bedrock:ModelId"]))
+            services.AddSingleton<IAIAnalysisService, BedrockAIAnalysisService>();
+        else
+            services.AddSingleton<IAIAnalysisService, StubAIAnalysisService>();
         services.AddScoped<IAnalysisLikeService, AnalysisLikeService>();
 
         return services;

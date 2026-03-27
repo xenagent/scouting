@@ -26,11 +26,66 @@ public class Analysis : BaseUserTrackModel
 
     // ── AI / Quality score ────────────────────────────────────────────────────
     public string? AISummary { get; private set; }
-    public decimal? AIScore { get; private set; }            // 0-10
+    public decimal? AIScore { get; private set; }                   // 0-10 (originality 0-5 + depth 0-5)
+    public decimal? AIOriginalityScore { get; private set; }        // 0-5
+    public decimal? AIDepthScore { get; private set; }              // 0-5
+    public decimal? EstimatedReadingMinutes { get; private set; }
     public bool IsFlaggedAsDuplicate { get; private set; }
 
     // ── Likes (denormalized count) ────────────────────────────────────────────
     public int LikeCount { get; private set; }
+
+    // ── Keşif bağlamı — analiz yapıldığı andaki snapshot ─────────────────────
+    // Bu veriler, "keşif katsayısı" hesaplanırken kullanılır.
+    // Oyuncu sonradan büyük bir kulübe transfer olursa ya da değeri patlarsa
+    // bu alandaki değerlere bakılarak puan çarpanı belirlenir.
+    public decimal? PlayerMarketValueAtAnalysis { get; private set; }  // milyon €
+    public int?     PlayerAgeAtAnalysis { get; private set; }
+    public int      PriorAnalysisCountOnPlayer { get; private set; }   // kaçıncı analistsin?
+
+    /// <summary>
+    /// Onay anındaki piyasa değeri — periyodik sync'te karşılaştırma baz noktası.
+    /// Her bonus ödendikten sonra yeni değere güncellenir (kümülatif takip).
+    /// </summary>
+    public decimal? ApprovalBaselineMarketValue { get; private set; }
+
+    /// <summary>
+    /// Keşif katsayısı: analiz yapıldığındaki piyasa değeri, yaş ve analiz sırası
+    /// göz önüne alınarak hesaplanır.
+    /// Danimarka ligindeki bilinmeyen 18 yaşındaki ilk analizi → yüksek katsayı.
+    /// Arsenal'deki tanınan 18 yaşındaki 10. analiz → düşük katsayı.
+    /// </summary>
+    public decimal DiscoveryMultiplier
+    {
+        get
+        {
+            var mv = PlayerMarketValueAtAnalysis ?? 999m;
+            decimal mvFactor = mv switch
+            {
+                < 0.5m  => 4.0m,   // < €500k — gerçek keşif
+                < 2m    => 3.0m,
+                < 5m    => 2.0m,
+                < 10m   => 1.5m,
+                _       => 1.0m    // ≥ €10m — tanınan oyuncu
+            };
+
+            decimal ageFactor = PlayerAgeAtAnalysis switch
+            {
+                <= 18   => 1.5m,
+                <= 21   => 1.25m,
+                _       => 1.0m
+            };
+
+            decimal orderFactor = PriorAnalysisCountOnPlayer switch
+            {
+                0       => 2.0m,   // İlk analist
+                <= 2    => 1.5m,
+                _       => 1.0m
+            };
+
+            return Math.Round(mvFactor * ageFactor * orderFactor, 2);
+        }
+    }
 
     public AnalysisStatus Status { get; private set; } = AnalysisStatus.Pending;
     public string? RejectionReason { get; private set; }
@@ -93,11 +148,35 @@ public class Analysis : BaseUserTrackModel
         return ResultDomain.Ok();
     }
 
-    public void SetAIReview(string summary, decimal score, bool isDuplicate = false)
+    public void SetAIReview(
+        string summary, decimal originalityScore, decimal depthScore,
+        decimal estimatedReadingMinutes, bool isDuplicate = false)
     {
-        AISummary = summary;
-        AIScore = score;
+        AISummary = string.IsNullOrWhiteSpace(summary) ? null : summary;
+        AIOriginalityScore = Math.Round(originalityScore, 1);
+        AIDepthScore       = Math.Round(depthScore, 1);
+        AIScore            = Math.Round(originalityScore + depthScore, 1);
+        EstimatedReadingMinutes = Math.Round(estimatedReadingMinutes, 1);
         IsFlaggedAsDuplicate = isDuplicate;
+    }
+
+    /// <summary>
+    /// Onay anında çağrılır — gelecekteki bonus karşılaştırması için baz değer.
+    /// Bonus ödendikçe UpdateApprovalBaseline ile ileri taşınır.
+    /// </summary>
+    public void SetApprovalBaseline(decimal? marketValue) =>
+        ApprovalBaselineMarketValue = marketValue;
+
+    /// <summary>Bonus ödendikten sonra baz değeri yeni değere taşır (tekrar ödemeyi önler).</summary>
+    public void UpdateApprovalBaseline(decimal newValue) =>
+        ApprovalBaselineMarketValue = newValue;
+
+    /// <summary>Analiz kaydedildikten hemen sonra çağrılır — oyuncunun o andaki snapshot'ını saklar.</summary>
+    public void SetDiscoveryContext(decimal? playerMarketValueMillions, int? playerAge, int priorAnalysisCount)
+    {
+        PlayerMarketValueAtAnalysis = playerMarketValueMillions;
+        PlayerAgeAtAnalysis = playerAge;
+        PriorAnalysisCountOnPlayer = priorAnalysisCount;
     }
 
     public void IncrementLikeCount() => LikeCount++;

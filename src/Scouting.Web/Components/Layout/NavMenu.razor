@@ -15,6 +15,8 @@
                     <div class="hidden sm:flex items-center gap-6">
                         <a href="/players" class="@LinkClass("/players")">Oyuncular</a>
                         <a href="/scouters" class="@LinkClass("/scouters")">Scoutlar</a>
+                        <a href="/how-it-works" class="@LinkClass("/how-it-works")">Nasıl Çalışır?</a>
+                        <a href="/my-analyses" class="@LinkClass("/my-analyses")">Analizlerim</a>
                         @if (auth.User.IsInRole("Admin"))
                         {
                             <a href="/admin" class="@LinkClass("/admin") text-yellow-500">Admin</a>
@@ -46,6 +48,7 @@
                     <div class="hidden sm:flex items-center gap-6">
                         <a href="/players" class="@LinkClass("/players")">Oyuncular</a>
                         <a href="/scouters" class="@LinkClass("/scouters")">Scoutlar</a>
+                        <a href="/how-it-works" class="@LinkClass("/how-it-works")">Nasıl Çalışır?</a>
                     </div>
                     <div class="flex items-center gap-3">
                         <a href="/suggest" class="btn-primary text-xs px-3 py-2">+ Öneri Ekle</a>

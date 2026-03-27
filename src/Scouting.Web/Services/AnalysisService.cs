@@ -90,6 +90,38 @@ public class AnalysisService : IAnalysisService
         return ServiceListResult<PendingAnalysisVm>.Ok(items);
     }
 
+    public async Task<ServiceListResult<MyAnalysisVm>> GetMyAnalysesAsync(
+        Guid userId, int page = 1, int pageSize = 20, CancellationToken ct = default)
+    {
+        var items = await (
+            from a in _db.Analyses.AsNoTracking()
+            where a.CreatedUserId == userId
+            join p in _db.Players.AsNoTracking() on a.PlayerId equals p.Id
+            orderby a.CreatedTime descending
+            select new MyAnalysisVm
+            {
+                Id = a.Id,
+                PlayerName = p.Name!,
+                PlayerSlug = p.Slug!,
+                PlayerImageUrl = p.ImageUrl,
+                ContentPreview = a.Content!.Length > 200
+                    ? a.Content.Substring(0, 200) + "..."
+                    : a.Content,
+                AIScore = a.AIScore,
+                AISummary = a.AISummary,
+                EstimatedReadingMinutes = a.EstimatedReadingMinutes,
+                LikeCount = a.LikeCount,
+                Status = a.Status.ToString(),
+                IsFlaggedAsDuplicate = a.IsFlaggedAsDuplicate,
+                CreatedAt = a.CreatedTime
+            })
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return ServiceListResult<MyAnalysisVm>.Ok(items);
+    }
+
     public async Task<ServiceResult> AddAnalysisAsync(
         Guid playerId, AnalysisInput input, Guid userId, CancellationToken ct = default)
     {
@@ -97,10 +129,6 @@ public class AnalysisService : IAnalysisService
             .FirstOrDefaultAsync(p => p.Id == playerId && p.Status == PlayerStatus.Approved, ct);
         if (player is null)
             return ServiceResult.Fail(ErrorCodes.COMMON_MESSAGE_RECORD_NOT_FOUND);
-
-        // Oyuncunun TM verisi varsa, analiz girişi anında güncellemeyi tetikle
-        if (!string.IsNullOrEmpty(player.TransfermarktId))
-            _tmQueue.Enqueue(player.TransfermarktId);
 
         var result = Analysis.Create(
             playerId, input.VideoUrl, input.General, userId,
@@ -112,12 +140,14 @@ public class AnalysisService : IAnalysisService
 
         var analysis = result.Data!;
 
-        // Collect existing analyses for duplicate detection
-        var existingContent = await _db.Analyses
+        // Collect existing approved analyses for duplicate detection + discovery context
+        var existingApproved = await _db.Analyses
             .AsNoTracking()
             .Where(a => a.PlayerId == playerId && a.Status == AnalysisStatus.Approved)
             .Select(a => a.Content!)
             .ToListAsync(ct);
+
+        var existingContent = existingApproved;
 
         // AI evaluation (stub or real Bedrock)
         var aiInput = new AIAnalysisInput
@@ -138,8 +168,16 @@ public class AnalysisService : IAnalysisService
         if (aiResult.Score > 0 || !string.IsNullOrEmpty(aiResult.Summary))
             analysis.SetAIReview(
                 aiResult.Summary ?? "",
-                aiResult.Score,
+                aiResult.OriginalityScore,
+                aiResult.DepthScore,
+                aiResult.EstimatedReadingMinutes,
                 aiResult.IsPossibleDuplicate);
+
+        // Keşif bağlamını kaydet — puan bonusu hesabı için oyuncunun anlık snapshot'ı
+        analysis.SetDiscoveryContext(
+            player.MarketValue,
+            player.Age,
+            existingApproved.Count);
 
         await _db.Analyses.AddAsync(analysis, ct);
         await _db.SaveChangesAsync(ct);
@@ -157,6 +195,19 @@ public class AnalysisService : IAnalysisService
 
         var scout = await _db.Users.FirstOrDefaultAsync(u => u.Id == analysis.CreatedUserId, ct);
         scout?.IncrementApprovedAnalysisCount();
+
+        // Onay anındaki piyasa değerini baz olarak kaydet,
+        // ardından TM'den taze veri çekmeyi tetikle.
+        var player = await _db.Players.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == analysis.PlayerId, ct);
+
+        if (player is not null)
+        {
+            analysis.SetApprovalBaseline(player.MarketValue);
+
+            if (!string.IsNullOrEmpty(player.TransfermarktId))
+                _tmQueue.Enqueue(player.TransfermarktId);
+        }
 
         await _db.SaveChangesAsync(ct);
         return ServiceResult.Ok();

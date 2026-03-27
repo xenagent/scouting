@@ -7,6 +7,7 @@ public interface IFileService
 {
     Task<ServiceResult<string>> UploadPlayerImageAsync(IBrowserFile file, CancellationToken ct = default);
     Task<ServiceResult<string>> UploadAvatarAsync(IBrowserFile file, CancellationToken ct = default);
+    Task<ServiceResult<string>> SavePlayerImageFromStreamAsync(Stream stream, string tmId, string ext, CancellationToken ct = default);
 }
 
 public class FileService : IFileService
@@ -60,5 +61,20 @@ public class FileService : IFileService
         await readStream.CopyToAsync(writeStream, ct);
 
         return ServiceResult<string>.Ok($"/uploads/avatars/{fileName}");
+    }
+
+    public async Task<ServiceResult<string>> SavePlayerImageFromStreamAsync(
+        Stream stream, string tmId, string ext, CancellationToken ct = default)
+    {
+        var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "players");
+        Directory.CreateDirectory(uploadsDir);
+
+        var fileName = $"tm_{tmId}{ext}";
+        var filePath = Path.Combine(uploadsDir, fileName);
+
+        await using var writeStream = File.Create(filePath);
+        await stream.CopyToAsync(writeStream, ct);
+
+        return ServiceResult<string>.Ok($"/uploads/players/{fileName}");
     }
 }
