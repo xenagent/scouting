@@ -32,6 +32,52 @@ public class Analysis : BaseUserTrackModel
     // ── Likes (denormalized count) ────────────────────────────────────────────
     public int LikeCount { get; private set; }
 
+    // ── Keşif bağlamı — analiz yapıldığı andaki snapshot ─────────────────────
+    // Bu veriler, "keşif katsayısı" hesaplanırken kullanılır.
+    // Oyuncu sonradan büyük bir kulübe transfer olursa ya da değeri patlarsa
+    // bu alandaki değerlere bakılarak puan çarpanı belirlenir.
+    public decimal? PlayerMarketValueAtAnalysis { get; private set; }  // milyon €
+    public int?     PlayerAgeAtAnalysis { get; private set; }
+    public int      PriorAnalysisCountOnPlayer { get; private set; }   // kaçıncı analistsin?
+
+    /// <summary>
+    /// Keşif katsayısı: analiz yapıldığındaki piyasa değeri, yaş ve analiz sırası
+    /// göz önüne alınarak hesaplanır.
+    /// Danimarka ligindeki bilinmeyen 18 yaşındaki ilk analizi → yüksek katsayı.
+    /// Arsenal'deki tanınan 18 yaşındaki 10. analiz → düşük katsayı.
+    /// </summary>
+    public decimal DiscoveryMultiplier
+    {
+        get
+        {
+            var mv = PlayerMarketValueAtAnalysis ?? 999m;
+            decimal mvFactor = mv switch
+            {
+                < 0.5m  => 4.0m,   // < €500k — gerçek keşif
+                < 2m    => 3.0m,
+                < 5m    => 2.0m,
+                < 10m   => 1.5m,
+                _       => 1.0m    // ≥ €10m — tanınan oyuncu
+            };
+
+            decimal ageFactor = PlayerAgeAtAnalysis switch
+            {
+                <= 18   => 1.5m,
+                <= 21   => 1.25m,
+                _       => 1.0m
+            };
+
+            decimal orderFactor = PriorAnalysisCountOnPlayer switch
+            {
+                0       => 2.0m,   // İlk analist
+                <= 2    => 1.5m,
+                _       => 1.0m
+            };
+
+            return Math.Round(mvFactor * ageFactor * orderFactor, 2);
+        }
+    }
+
     public AnalysisStatus Status { get; private set; } = AnalysisStatus.Pending;
     public string? RejectionReason { get; private set; }
 
@@ -98,6 +144,14 @@ public class Analysis : BaseUserTrackModel
         AISummary = summary;
         AIScore = score;
         IsFlaggedAsDuplicate = isDuplicate;
+    }
+
+    /// <summary>Analiz kaydedildikten hemen sonra çağrılır — oyuncunun o andaki snapshot'ını saklar.</summary>
+    public void SetDiscoveryContext(decimal? playerMarketValueMillions, int? playerAge, int priorAnalysisCount)
+    {
+        PlayerMarketValueAtAnalysis = playerMarketValueMillions;
+        PlayerAgeAtAnalysis = playerAge;
+        PriorAnalysisCountOnPlayer = priorAnalysisCount;
     }
 
     public void IncrementLikeCount() => LikeCount++;

@@ -129,8 +129,12 @@ public class ScouterVm
     public string? Bio { get; set; }
     public int ApprovedAnalysisCount { get; set; }
     public int TotalLikesReceived { get; set; }
+    public int BonusPoints { get; set; }
     public int FollowerCount { get; set; }
     public UserLevel Level { get; set; }
+
+    // Computed
+    public int TotalPoints => ApprovedAnalysisCount * 5 + TotalLikesReceived + BonusPoints;
 }
 
 public class ScouterProfileVm : ScouterVm

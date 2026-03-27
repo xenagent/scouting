@@ -24,250 +24,255 @@
         </p>
     </div>
 
-    <!-- Step 1: Analiz Yap -->
+    <!-- Puan sistemi özeti -->
     <section class="mb-16">
-        <div class="flex items-start gap-6">
-            <div class="shrink-0 w-12 h-12 rounded-xl bg-pitch-950 border border-pitch-800 flex items-center justify-center">
-                <span class="font-display text-2xl text-pitch-400">1</span>
-            </div>
-            <div class="flex-1 pt-1">
-                <h2 class="text-xl font-bold text-white mb-2">Analiz Yaz</h2>
-                <p class="text-scout-400 leading-relaxed mb-4">
-                    Bir oyuncuyu izle, notlarını al ve detaylı analizini platforma yükle.
-                    Teknik, taktiksel, fiziksel değerlendirmeni yaz; güçlü ve geliştirilmesi
-                    gereken yönlerini belirt. Video bağlantısı ekle — analizin incelenebilir olsun.
-                </p>
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    @foreach (var tag in new[] { "Teknik Analiz", "Taktiksel Görüş", "Fiziksel Değerlendirme", "Güçlü Yönler", "Gelişim Alanları", "Video Kanıtı" })
-                    {
-                        <div class="flex items-center gap-2 bg-scout-900 border border-scout-800 rounded-lg px-3 py-2">
-                            <div class="w-1.5 h-1.5 rounded-full bg-pitch-500 shrink-0"></div>
-                            <span class="text-xs text-scout-300">@tag</span>
-                        </div>
-                    }
+        <h2 class="section-title text-center mb-8">Nasıl Puan Kazanırsın?</h2>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+            <div class="card flex items-start gap-4">
+                <div class="w-10 h-10 rounded-xl bg-pitch-950 border border-pitch-800 flex items-center justify-center shrink-0 text-lg">✍</div>
+                <div>
+                    <div class="flex items-baseline gap-2 mb-1">
+                        <span class="text-2xl font-bold text-pitch-400">+5</span>
+                        <span class="text-sm text-scout-400">puan</span>
+                    </div>
+                    <p class="text-sm font-semibold text-white">Onaylanan Her Analiz</p>
+                    <p class="text-xs text-scout-500 mt-0.5">Editöryal incelemeyi geçen her analiz için.</p>
                 </div>
             </div>
+
+            <div class="card flex items-start gap-4">
+                <div class="w-10 h-10 rounded-xl bg-pitch-950 border border-pitch-800 flex items-center justify-center shrink-0 text-lg">❤</div>
+                <div>
+                    <div class="flex items-baseline gap-2 mb-1">
+                        <span class="text-2xl font-bold text-pitch-400">+1</span>
+                        <span class="text-sm text-scout-400">puan</span>
+                    </div>
+                    <p class="text-sm font-semibold text-white">Her Beğeni</p>
+                    <p class="text-xs text-scout-500 mt-0.5">Kaliteli analiz yaz, daha çok beğeni topla.</p>
+                </div>
+            </div>
+
+            <div class="card flex items-start gap-4 border-pitch-800/50">
+                <div class="w-10 h-10 rounded-xl bg-yellow-950/50 border border-yellow-800/50 flex items-center justify-center shrink-0 text-lg">📈</div>
+                <div>
+                    <div class="flex items-baseline gap-2 mb-1">
+                        <span class="text-2xl font-bold text-yellow-400">+25</span>
+                        <span class="text-sm text-scout-400">× katsayı</span>
+                    </div>
+                    <p class="text-sm font-semibold text-white">Piyasa Değeri Artar</p>
+                    <p class="text-xs text-scout-500 mt-0.5">Analiz ettiğin oyuncunun değeri yükselirse.</p>
+                </div>
+            </div>
+
+            <div class="card flex items-start gap-4">
+                <div class="w-10 h-10 rounded-xl bg-yellow-950/50 border border-yellow-800/50 flex items-center justify-center shrink-0 text-lg">✈</div>
+                <div>
+                    <div class="flex items-baseline gap-2 mb-1">
+                        <span class="text-2xl font-bold text-yellow-400">+25</span>
+                        <span class="text-sm text-scout-400">× katsayı</span>
+                    </div>
+                    <p class="text-sm font-semibold text-white">Üst Lige Transfer</p>
+                    <p class="text-xs text-scout-500 mt-0.5">Analiz ettiğin oyuncu daha büyük bir lige geçerse.</p>
+                </div>
+            </div>
+
+            <div class="card flex items-start gap-4">
+                <div class="w-10 h-10 rounded-xl bg-yellow-950/50 border border-yellow-800/50 flex items-center justify-center shrink-0 text-lg">⚡</div>
+                <div>
+                    <div class="flex items-baseline gap-2 mb-1">
+                        <span class="text-2xl font-bold text-yellow-400">+25</span>
+                        <span class="text-sm text-scout-400">× katsayı</span>
+                    </div>
+                    <p class="text-sm font-semibold text-white">İstatistikler İyileşir</p>
+                    <p class="text-xs text-scout-500 mt-0.5">Sonraki sezonda gol/asist/maç verisi artarsa.</p>
+                </div>
+            </div>
+
+            <div class="card flex items-start gap-4 border-red-900/30">
+                <div class="w-10 h-10 rounded-xl bg-red-950/30 border border-red-900/30 flex items-center justify-center shrink-0 text-lg">📉</div>
+                <div>
+                    <div class="flex items-baseline gap-2 mb-1">
+                        <span class="text-2xl font-bold text-red-400">−25</span>
+                        <span class="text-sm text-scout-400">puan</span>
+                    </div>
+                    <p class="text-sm font-semibold text-white">Piyasa Değeri Düşer</p>
+                    <p class="text-xs text-scout-500 mt-0.5">Analiz ettiğin oyuncunun değeri belirgin düşerse.</p>
+                </div>
+            </div>
+
         </div>
     </section>
 
-    <div class="border-l-2 border-dashed border-scout-800 ml-6 h-8 mb-8"></div>
-
-    <!-- Step 2: Onay Süreci -->
+    <!-- Keşif Katsayısı -->
     <section class="mb-16">
-        <div class="flex items-start gap-6">
-            <div class="shrink-0 w-12 h-12 rounded-xl bg-scout-900 border border-scout-800 flex items-center justify-center">
-                <span class="font-display text-2xl text-scout-400">2</span>
+        <div class="bg-gradient-to-br from-scout-900 to-scout-950 border border-pitch-800/40 rounded-2xl p-6 sm:p-8">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-pitch-950 border border-pitch-700 flex items-center justify-center text-lg">🔭</div>
+                <div>
+                    <h2 class="text-xl font-bold text-white">Keşif Katsayısı</h2>
+                    <p class="text-xs text-pitch-400">Ne kadar erken keşfedersen, o kadar çok kazanırsın</p>
+                </div>
             </div>
-            <div class="flex-1 pt-1">
-                <h2 class="text-xl font-bold text-white mb-2">AI Değerlendirmesi & Onay</h2>
-                <p class="text-scout-400 leading-relaxed mb-4">
-                    Analizin önce yapay zeka tarafından değerlendirilir: kalite puanı alır,
-                    özet çıkarılır, tekrar içerik tespiti yapılır. Ardından editöryal incelemeden
-                    geçer. Onaylanan analizler yayına girer ve profiline eklenir.
-                </p>
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <div class="flex-1 bg-violet-950/30 border border-violet-800/40 rounded-xl p-4">
-                        <p class="text-xs text-violet-400 font-semibold mb-1">AI Skoru</p>
-                        <p class="text-sm text-scout-400">Analiz kalitesi 1–10 arasında puanlanır. Yüksek skor, öne çıkma şansını artırır.</p>
+            <p class="text-scout-400 leading-relaxed mb-6">
+                Arsenal'deki 18 yaşındaki oyuncuyu analiz etmek kolay — zaten herkes biliyor.
+                Danimarka ligindeki €300k'lık 18 yaşındaki oyuncuyu keşfetmek başka bir şey.
+                Piyasa değeri, ligin seviyesi ve kaçıncı analist olduğun, bonus puanının
+                <span class="text-white font-semibold">katsayısını</span> belirler.
+            </p>
+
+            <div class="grid sm:grid-cols-3 gap-4 mb-6">
+                <div>
+                    <p class="text-xs text-scout-500 mb-2 uppercase tracking-wider">Piyasa Değeri (analiz anında)</p>
+                    <div class="space-y-1.5 text-sm">
+                        <div class="flex justify-between"><span class="text-scout-400">&lt; €500k</span><span class="text-pitch-300 font-semibold">× 4.0</span></div>
+                        <div class="flex justify-between"><span class="text-scout-400">&lt; €2m</span><span class="text-pitch-400 font-semibold">× 3.0</span></div>
+                        <div class="flex justify-between"><span class="text-scout-400">&lt; €5m</span><span class="text-pitch-400 font-semibold">× 2.0</span></div>
+                        <div class="flex justify-between"><span class="text-scout-400">&lt; €10m</span><span class="text-scout-400">× 1.5</span></div>
+                        <div class="flex justify-between"><span class="text-scout-400">≥ €10m</span><span class="text-scout-600">× 1.0</span></div>
                     </div>
-                    <div class="flex-1 bg-pitch-950/30 border border-pitch-800/40 rounded-xl p-4">
-                        <p class="text-xs text-pitch-400 font-semibold mb-1">Onaylanan = Puan</p>
-                        <p class="text-sm text-scout-400">Her onaylanan analiz <span class="text-white font-semibold">+10 puan</span>. Her beğeni <span class="text-white font-semibold">+1 puan</span>. Seviye hesabında sayılır.</p>
+                </div>
+                <div>
+                    <p class="text-xs text-scout-500 mb-2 uppercase tracking-wider">Kaçıncı Analistsin?</p>
+                    <div class="space-y-1.5 text-sm">
+                        <div class="flex justify-between"><span class="text-scout-400">İlk analiz</span><span class="text-pitch-300 font-semibold">× 2.0</span></div>
+                        <div class="flex justify-between"><span class="text-scout-400">2. veya 3.</span><span class="text-pitch-400">× 1.5</span></div>
+                        <div class="flex justify-between"><span class="text-scout-400">4. ve sonrası</span><span class="text-scout-600">× 1.0</span></div>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-xs text-scout-500 mb-2 uppercase tracking-wider">Oyuncu Yaşı</p>
+                    <div class="space-y-1.5 text-sm">
+                        <div class="flex justify-between"><span class="text-scout-400">≤ 18 yaş</span><span class="text-pitch-300 font-semibold">× 1.5</span></div>
+                        <div class="flex justify-between"><span class="text-scout-400">19–21 yaş</span><span class="text-pitch-400">× 1.25</span></div>
+                        <div class="flex justify-between"><span class="text-scout-400">22+ yaş</span><span class="text-scout-600">× 1.0</span></div>
                     </div>
                 </div>
             </div>
+
+            <!-- Örnek karşılaştırma -->
+            <div class="grid sm:grid-cols-2 gap-4">
+                <div class="bg-scout-950/60 border border-scout-800 rounded-xl p-4">
+                    <p class="text-xs text-scout-500 mb-3 font-medium">📍 Arsenal, 18 yaş, €25m, 5. analist</p>
+                    <div class="space-y-1 text-xs text-scout-500 mb-3">
+                        <div class="flex justify-between"><span>Piyasa değeri ≥ €10m</span><span>× 1.0</span></div>
+                        <div class="flex justify-between"><span>18 yaş</span><span>× 1.5</span></div>
+                        <div class="flex justify-between"><span>5. analist</span><span>× 1.0</span></div>
+                    </div>
+                    <div class="border-t border-scout-800 pt-2 flex justify-between items-center">
+                        <span class="text-xs text-scout-500">Bonus (değer artışı)</span>
+                        <span class="text-sm font-bold text-scout-300">25 × 1.5 = <span class="text-white">38 puan</span></span>
+                    </div>
+                </div>
+
+                <div class="bg-pitch-950/30 border border-pitch-800/50 rounded-xl p-4">
+                    <p class="text-xs text-pitch-400 mb-3 font-medium">📍 Danimarka ligi, 18 yaş, €300k, ilk analist</p>
+                    <div class="space-y-1 text-xs text-scout-400 mb-3">
+                        <div class="flex justify-between"><span>Piyasa değeri &lt; €500k</span><span class="text-pitch-400">× 4.0</span></div>
+                        <div class="flex justify-between"><span>18 yaş</span><span class="text-pitch-400">× 1.5</span></div>
+                        <div class="flex justify-between"><span>İlk analist</span><span class="text-pitch-400">× 2.0</span></div>
+                    </div>
+                    <div class="border-t border-pitch-900/50 pt-2 flex justify-between items-center">
+                        <span class="text-xs text-scout-500">Bonus (değer artışı)</span>
+                        <span class="text-sm font-bold text-pitch-300">25 × 12 = <span class="text-white">300 puan</span></span>
+                    </div>
+                </div>
+            </div>
+            <p class="text-xs text-scout-600 mt-3 text-center">Katsayılar çarpımsal olarak uygulanır. Aynı temel bonus — 8× fark.</p>
         </div>
     </section>
 
-    <div class="border-l-2 border-dashed border-scout-800 ml-6 h-8 mb-8"></div>
-
-    <!-- Step 3: Seviye Sistemi -->
+    <!-- Seviye sistemi -->
     <section class="mb-16">
-        <div class="flex items-start gap-6">
-            <div class="shrink-0 w-12 h-12 rounded-xl bg-scout-900 border border-scout-800 flex items-center justify-center">
-                <span class="font-display text-2xl text-scout-400">3</span>
-            </div>
-            <div class="flex-1 pt-1">
-                <h2 class="text-xl font-bold text-white mb-2">Seviyeni Yükselt</h2>
-                <p class="text-scout-400 leading-relaxed mb-6">
-                    Her onaylanan analiz <span class="text-white">10 puan</span>, her beğeni
-                    <span class="text-white">1 puan</span> kazandırır. Puanın arttıkça unvanın
-                    yükselir — ve Expert olunca kazanç kapısı açılır.
-                </p>
-
-                <!-- Level cards -->
-                <div class="space-y-3">
-                    @{
-                        var levels = new[]
-                        {
-                            new { Name = "Starter", Range = "0–49 puan", Desc = "İlk adımlarını atıyorsun. Analiz yazmaya başla, geri bildirim al, platformu tanı.", Color = "scout", Analyses = "~0–4 analiz", Locked = false },
-                            new { Name = "Mid", Range = "50–199 puan", Desc = "Güvenilir bir iz bırakmaya başladın. Analizlerin öne çıkma şansı artıyor.", Color = "pitch", Analyses = "~5–19 analiz", Locked = false },
-                            new { Name = "Senior", Range = "200–499 puan", Desc = "Platformda tanınan bir isim oldun. Takipçilerin analizlerini yakından izliyor.", Color = "violet", Analyses = "~20–49 analiz", Locked = false },
-                            new { Name = "Expert ✦", Range = "500+ puan", Desc = "Kazanç programına dahil olursun. Okuma başına gelir, beğeni bonusları ve transfer/değer artışı ödülleri.", Color = "yellow", Analyses = "~50+ analiz", Locked = true },
-                        };
-                    }
-                    @foreach (var level in levels)
-                    {
-                        <div class="relative flex items-start gap-4 rounded-xl border p-4 @(level.Locked ? "border-yellow-800/50 bg-yellow-950/10" : "border-scout-800 bg-scout-900/50")">
-                            <div class="shrink-0 pt-0.5">
-                                @if (level.Name.Contains("Expert"))
-                                {
-                                    <span class="badge bg-yellow-900/60 text-yellow-400 border border-yellow-700/40 text-xs">@level.Name</span>
-                                }
-                                else if (level.Name == "Senior")
-                                {
-                                    <span class="badge bg-violet-900/60 text-violet-300 border border-violet-700/40 text-xs">@level.Name</span>
-                                }
-                                else if (level.Name == "Mid")
-                                {
-                                    <span class="badge bg-pitch-900/60 text-pitch-300 border border-pitch-700/40 text-xs">@level.Name</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-scout-800 text-scout-400 text-xs">@level.Name</span>
-                                }
-                            </div>
-                            <div class="flex-1">
-                                <div class="flex items-center gap-3 mb-1">
-                                    <span class="text-xs font-semibold text-scout-500">@level.Range</span>
-                                    <span class="text-xs text-scout-700">·</span>
-                                    <span class="text-xs text-scout-600">@level.Analyses</span>
-                                </div>
-                                <p class="text-sm text-scout-400">@level.Desc</p>
-                            </div>
-                            @if (level.Locked)
-                            {
-                                <div class="shrink-0 flex items-center gap-1.5 text-yellow-500 text-xs font-medium">
-                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
-                                    </svg>
-                                    Kazanç Kilidini Açar
-                                </div>
-                            }
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <div class="border-l-2 border-dashed border-scout-800 ml-6 h-8 mb-8"></div>
-
-    <!-- Step 4: Kazanç Sistemi -->
-    <section class="mb-16">
-        <div class="flex items-start gap-6">
-            <div class="shrink-0 w-12 h-12 rounded-xl bg-yellow-950/40 border border-yellow-800/50 flex items-center justify-center">
-                <svg class="w-5 h-5 text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
-                </svg>
-            </div>
-            <div class="flex-1 pt-1">
-                <div class="flex items-center gap-2 mb-2">
-                    <h2 class="text-xl font-bold text-white">Expert Kazanç Modeli</h2>
-                    <span class="badge bg-yellow-900/60 text-yellow-400 border border-yellow-700/40 text-xs">Yakında</span>
-                </div>
-                <p class="text-scout-400 leading-relaxed mb-6">
-                    Expert seviyesine ulaştığında analizlerin sana pasif gelir üretmeye başlar.
-                    Ne kadar kaliteli ve kapsamlı analiz yazarsan, kazancın o kadar artar.
-                </p>
-
-                <div class="grid sm:grid-cols-3 gap-4 mb-6">
-                    <!-- Okuma -->
-                    <div class="bg-scout-900 border border-scout-800 rounded-xl p-4 text-center">
-                        <div class="w-10 h-10 rounded-full bg-pitch-950 border border-pitch-800 flex items-center justify-center mx-auto mb-3">
-                            <svg class="w-5 h-5 text-pitch-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                            </svg>
-                        </div>
-                        <p class="text-sm font-semibold text-white mb-1">Okuma Başına</p>
-                        <p class="text-xs text-scout-500 leading-relaxed">Her okuma küçük bir gelir. Analiz ne kadar çok okunursa kazancın o kadar artar.</p>
-                    </div>
-
-                    <!-- Beğeni -->
-                    <div class="bg-scout-900 border border-scout-800 rounded-xl p-4 text-center">
-                        <div class="w-10 h-10 rounded-full bg-pitch-950 border border-pitch-800 flex items-center justify-center mx-auto mb-3">
-                            <svg class="w-5 h-5 text-pitch-400" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/>
-                            </svg>
-                        </div>
-                        <p class="text-sm font-semibold text-white mb-1">Beğeni Bonusu</p>
-                        <p class="text-xs text-scout-500 leading-relaxed">Analizine yapılan her beğeni ekstra bonus kazandırır. Kalite önemli.</p>
-                    </div>
-
-                    <!-- Transfer / Değer artışı -->
-                    <div class="bg-scout-900 border border-scout-800 rounded-xl p-4 text-center">
-                        <div class="w-10 h-10 rounded-full bg-yellow-950/50 border border-yellow-800/50 flex items-center justify-center mx-auto mb-3">
-                            <svg class="w-5 h-5 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-                            </svg>
-                        </div>
-                        <p class="text-sm font-semibold text-white mb-1">Transfer & Değer</p>
-                        <p class="text-xs text-scout-500 leading-relaxed">Analiz ettiğin oyuncu transfer olursa veya piyasa değeri artarsa büyük bonus alırsın.</p>
-                    </div>
-                </div>
-
-                <!-- Bonus callout -->
-                <div class="bg-yellow-950/20 border border-yellow-800/40 rounded-xl p-4">
-                    <div class="flex items-start gap-3">
-                        <svg class="w-5 h-5 text-yellow-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-                        </svg>
-                        <div>
-                            <p class="text-sm font-semibold text-yellow-400 mb-1">Transfermarkt Entegrasyonu</p>
-                            <p class="text-sm text-scout-400 leading-relaxed">
-                                Platform, Transfermarkt verilerini otomatik takip ediyor. Analiz ettiğin
-                                oyuncunun piyasa değeri yükseldiğinde veya büyük bir kulübe transfer
-                                olduğunda analizin otomatik olarak bonus puanlar ve gelir kazanır.
-                                Öngörün ne kadar erken ve doğruysa, ödülün o kadar büyük olur.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Timeline / Summary -->
-    <section class="mb-16">
-        <h2 class="text-xl font-bold text-white text-center mb-8">Yolculuğun Özeti</h2>
-        <div class="relative">
-            <!-- Connecting line -->
-            <div class="absolute left-1/2 top-8 bottom-8 w-px bg-scout-800 -translate-x-1/2 hidden sm:block"></div>
-
-            <div class="space-y-6">
-                @{
-                    var milestones = new[]
-                    {
-                        new { Icon = "✍", Label = "Kaydol & İlk Analizi Yaz", Sub = "Oyuncu öner veya mevcut oyuncuya analiz ekle", Side = "left" },
-                        new { Icon = "✓", Label = "Analiz Onaylanır", Sub = "AI değerlendirmesi + editöryal onay", Side = "right" },
-                        new { Icon = "📈", Label = "Mid → Senior Seviyeye Yüksel", Sub = "Onaylanan her analiz 10 puan, her beğeni 1 puan", Side = "left" },
-                        new { Icon = "👁", Label = "Analizlerin Okunur & Beğenilir", Sub = "Takipçiler artar, topluluk seni tanır", Side = "right" },
-                        new { Icon = "⭐", Label = "Expert Ol — Kazan", Sub = "500+ puana ulaş, kazanç kilidini aç", Side = "left" },
-                        new { Icon = "🔁", Label = "Oyuncu Transfer / Değer Artışı", Sub = "Erken analiz yazdıysan büyük bonus", Side = "right" },
-                    };
-                }
-                @foreach (var (m, i) in milestones.Select((m, i) => (m, i)))
+        <h2 class="section-title text-center mb-8">Seviye Yolculuğu</h2>
+        <div class="space-y-3">
+            @{
+                var levels = new[]
                 {
-                    <div class="flex items-center gap-4 sm:gap-0">
-                        @if (m.Side == "right")
-                        {
-                            <div class="hidden sm:block sm:w-1/2 sm:pr-8 sm:text-right"></div>
-                        }
-                        <div class="hidden sm:flex sm:w-0 sm:justify-center">
-                            <div class="w-8 h-8 rounded-full bg-scout-900 border-2 border-scout-700 flex items-center justify-center text-sm z-10">
-                                @m.Icon
-                            </div>
+                    new { Badge = "Starter",   Range = "0–24 puan",    Analyses = "~0–4 analiz",   Color = "scout",  Desc = "İlk adımlarını atıyorsun. Analiz yazmaya başla, geri bildirim al.", Expert = false },
+                    new { Badge = "Mid",       Range = "25–99 puan",   Analyses = "~5–19 analiz",  Color = "pitch",  Desc = "Güvenilir bir iz bırakmaya başladın. Analizlerin öne çıkma şansı artıyor.", Expert = false },
+                    new { Badge = "Senior",    Range = "100–249 puan", Analyses = "~20–49 analiz", Color = "violet", Desc = "Platformda tanınan bir isim oldun. Takipçilerin analizlerini yakından izliyor.", Expert = false },
+                    new { Badge = "Expert ✦", Range = "250+ puan",    Analyses = "~50+ analiz",   Color = "yellow", Desc = "Kazanç programı aktif. Okuma başına gelir, beğeni bonusları ve keşif ödülleri.", Expert = true },
+                };
+            }
+            @foreach (var lv in levels)
+            {
+                <div class="flex items-start gap-4 rounded-xl border p-4 @(lv.Expert ? "border-yellow-800/50 bg-yellow-950/10" : "border-scout-800 bg-scout-900/50")">
+                    @if (lv.Badge.Contains("Expert"))
+                    {
+                        <span class="badge bg-yellow-900/60 text-yellow-400 border border-yellow-700/40 text-xs shrink-0 mt-0.5">@lv.Badge</span>
+                    }
+                    else if (lv.Badge == "Senior")
+                    {
+                        <span class="badge bg-violet-900/60 text-violet-300 border border-violet-700/40 text-xs shrink-0 mt-0.5">@lv.Badge</span>
+                    }
+                    else if (lv.Badge == "Mid")
+                    {
+                        <span class="badge bg-pitch-900/60 text-pitch-300 border border-pitch-700/40 text-xs shrink-0 mt-0.5">@lv.Badge</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-scout-800 text-scout-400 text-xs shrink-0 mt-0.5">@lv.Badge</span>
+                    }
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-1">
+                            <span class="text-xs font-semibold text-scout-400">@lv.Range</span>
+                            <span class="text-xs text-scout-700">·</span>
+                            <span class="text-xs text-scout-600">@lv.Analyses</span>
                         </div>
-                        <div class="flex sm:hidden w-8 h-8 rounded-full bg-scout-900 border border-scout-700 items-center justify-center text-sm shrink-0">
-                            @m.Icon
-                        </div>
-                        <div class="@(m.Side == "left" ? "sm:w-1/2 sm:pl-8" : "sm:w-1/2 sm:pl-8")">
-                            <p class="text-sm font-semibold text-white">@m.Label</p>
-                            <p class="text-xs text-scout-500">@m.Sub</p>
-                        </div>
+                        <p class="text-sm text-scout-400">@lv.Desc</p>
                     </div>
-                }
+                    @if (lv.Expert)
+                    {
+                        <div class="shrink-0 flex items-center gap-1.5 text-yellow-500 text-xs font-medium">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                            </svg>
+                            Kazanç Aktif
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <p class="text-xs text-scout-600 mt-4 text-center">
+            Formül: (Onaylı Analiz × 5) + Beğeni + Bonus Puanlar
+        </p>
+    </section>
+
+    <!-- Expert kazanç modeli -->
+    <section class="mb-16">
+        <div class="card border-yellow-800/30">
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-yellow-950/40 border border-yellow-800/50 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-xl font-bold text-white">Expert Kazanç Modeli</h2>
+                        <span class="badge bg-yellow-900/60 text-yellow-400 border border-yellow-700/40 text-xs">Yakında</span>
+                    </div>
+                    <p class="text-xs text-scout-500">250 puana ulaştığında otomatik aktif olur</p>
+                </div>
+            </div>
+            <div class="grid sm:grid-cols-3 gap-4">
+                <div class="bg-scout-950/60 rounded-xl p-4 text-center">
+                    <p class="text-2xl mb-2">👁</p>
+                    <p class="text-sm font-semibold text-white mb-1">Okuma Başına</p>
+                    <p class="text-xs text-scout-500">Her okuma küçük bir gelir. Kaliteli analiz ne kadar çok okunursa o kadar kazanırsın.</p>
+                </div>
+                <div class="bg-scout-950/60 rounded-xl p-4 text-center">
+                    <p class="text-2xl mb-2">❤</p>
+                    <p class="text-sm font-semibold text-white mb-1">Beğeni Bonusu</p>
+                    <p class="text-xs text-scout-500">Analizine gelen her beğeni ekstra gelir sağlar.</p>
+                </div>
+                <div class="bg-scout-950/60 rounded-xl p-4 text-center">
+                    <p class="text-2xl mb-2">🔭</p>
+                    <p class="text-sm font-semibold text-white mb-1">Keşif Ödülü</p>
+                    <p class="text-xs text-scout-500">Erken keşfettiğin oyuncu patlarsa, keşif katsayısına göre büyük ödül.</p>
+                </div>
             </div>
         </div>
     </section>
@@ -276,8 +281,7 @@
     <div class="text-center bg-gradient-to-b from-scout-900 to-scout-950 border border-scout-800 rounded-2xl p-10">
         <h2 class="font-display text-3xl text-white tracking-tight mb-3">HAZIR MISIN?</h2>
         <p class="text-scout-400 mb-8 max-w-sm mx-auto">
-            İlk analizini yaz, scout yolculuğuna başla. Expert unvanına ulaştığında
-            emek verdiğin her analiz sana gelir getirir.
+            İlk analizini yaz. Danimarka ligindeki o bilinmeyen oyuncuyu ilk keşfeden sen ol.
         </p>
         <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
             <a href="/register" class="btn-primary px-6 py-3">Hemen Başla</a>

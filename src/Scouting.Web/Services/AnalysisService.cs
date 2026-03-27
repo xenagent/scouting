@@ -143,12 +143,14 @@ public class AnalysisService : IAnalysisService
 
         var analysis = result.Data!;
 
-        // Collect existing analyses for duplicate detection
-        var existingContent = await _db.Analyses
+        // Collect existing approved analyses for duplicate detection + discovery context
+        var existingApproved = await _db.Analyses
             .AsNoTracking()
             .Where(a => a.PlayerId == playerId && a.Status == AnalysisStatus.Approved)
             .Select(a => a.Content!)
             .ToListAsync(ct);
+
+        var existingContent = existingApproved;
 
         // AI evaluation (stub or real Bedrock)
         var aiInput = new AIAnalysisInput
@@ -171,6 +173,12 @@ public class AnalysisService : IAnalysisService
                 aiResult.Summary ?? "",
                 aiResult.Score,
                 aiResult.IsPossibleDuplicate);
+
+        // Keşif bağlamını kaydet — puan bonusu hesabı için oyuncunun anlık snapshot'ı
+        analysis.SetDiscoveryContext(
+            player.MarketValue,
+            player.Age,
+            existingApproved.Count);
 
         await _db.Analyses.AddAsync(analysis, ct);
         await _db.SaveChangesAsync(ct);
