@@ -275,7 +275,15 @@ else
                                 }
                                 @if (a.AIScore.HasValue)
                                 {
-                                    <span class="ai-score" title="Kalite Skoru">@a.AIScore.Value.ToString("0.0")/10</span>
+                                    <span class="ai-score" title="Özgünlük: @(a.AIOriginalityScore?.ToString("0.0") ?? "?")/5  ·  Derinlik: @(a.AIDepthScore?.ToString("0.0") ?? "?")/5">
+                                        @a.AIScore.Value.ToString("0.0")/10
+                                    </span>
+                                }
+                                @if (a.EstimatedReadingMinutes.HasValue)
+                                {
+                                    <span class="text-xs text-scout-600" title="Tahmini okuma süresi">
+                                        ~@a.EstimatedReadingMinutes.Value.ToString("0.#") dk okuma
+                                    </span>
                                 }
                                 @if (a.FilledSectionsCount > 0)
                                 {

@@ -76,7 +76,10 @@ public class AnalysisVm
 
     // Quality / AI
     public string? AISummary { get; set; }
-    public decimal? AIScore { get; set; }
+    public decimal? AIScore { get; set; }              // 0-10 total
+    public decimal? AIOriginalityScore { get; set; }   // 0-5
+    public decimal? AIDepthScore { get; set; }         // 0-5
+    public decimal? EstimatedReadingMinutes { get; set; }
     public bool IsFlaggedAsDuplicate { get; set; }
 
     // Scout
@@ -186,6 +189,7 @@ public class MyAnalysisVm
     public string ContentPreview { get; set; } = "";
     public decimal? AIScore { get; set; }
     public string? AISummary { get; set; }
+    public decimal? EstimatedReadingMinutes { get; set; }
     public int LikeCount { get; set; }
     public string Status { get; set; } = "";
     public bool IsFlaggedAsDuplicate { get; set; }

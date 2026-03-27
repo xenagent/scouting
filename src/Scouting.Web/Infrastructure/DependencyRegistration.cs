@@ -60,7 +60,11 @@ public static class DependencyRegistration
         services.AddScoped<IScouterService, ScouterService>();
         services.AddScoped<IFileService, FileService>();
         services.AddSingleton<IJwtService, JwtService>();
-        services.AddSingleton<IAIAnalysisService, StubAIAnalysisService>();
+        // AI evaluation: use Bedrock when configured, stub otherwise
+        if (!string.IsNullOrWhiteSpace(configuration["Bedrock:ModelId"]))
+            services.AddSingleton<IAIAnalysisService, BedrockAIAnalysisService>();
+        else
+            services.AddSingleton<IAIAnalysisService, StubAIAnalysisService>();
         services.AddScoped<IAnalysisLikeService, AnalysisLikeService>();
 
         return services;

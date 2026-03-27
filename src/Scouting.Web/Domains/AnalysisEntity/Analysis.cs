@@ -26,7 +26,10 @@ public class Analysis : BaseUserTrackModel
 
     // ── AI / Quality score ────────────────────────────────────────────────────
     public string? AISummary { get; private set; }
-    public decimal? AIScore { get; private set; }            // 0-10
+    public decimal? AIScore { get; private set; }                   // 0-10 (originality 0-5 + depth 0-5)
+    public decimal? AIOriginalityScore { get; private set; }        // 0-5
+    public decimal? AIDepthScore { get; private set; }              // 0-5
+    public decimal? EstimatedReadingMinutes { get; private set; }
     public bool IsFlaggedAsDuplicate { get; private set; }
 
     // ── Likes (denormalized count) ────────────────────────────────────────────
@@ -145,10 +148,15 @@ public class Analysis : BaseUserTrackModel
         return ResultDomain.Ok();
     }
 
-    public void SetAIReview(string summary, decimal score, bool isDuplicate = false)
+    public void SetAIReview(
+        string summary, decimal originalityScore, decimal depthScore,
+        decimal estimatedReadingMinutes, bool isDuplicate = false)
     {
-        AISummary = summary;
-        AIScore = score;
+        AISummary = string.IsNullOrWhiteSpace(summary) ? null : summary;
+        AIOriginalityScore = Math.Round(originalityScore, 1);
+        AIDepthScore       = Math.Round(depthScore, 1);
+        AIScore            = Math.Round(originalityScore + depthScore, 1);
+        EstimatedReadingMinutes = Math.Round(estimatedReadingMinutes, 1);
         IsFlaggedAsDuplicate = isDuplicate;
     }
 

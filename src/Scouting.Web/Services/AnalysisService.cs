@@ -109,6 +109,7 @@ public class AnalysisService : IAnalysisService
                     : a.Content,
                 AIScore = a.AIScore,
                 AISummary = a.AISummary,
+                EstimatedReadingMinutes = a.EstimatedReadingMinutes,
                 LikeCount = a.LikeCount,
                 Status = a.Status.ToString(),
                 IsFlaggedAsDuplicate = a.IsFlaggedAsDuplicate,
@@ -167,7 +168,9 @@ public class AnalysisService : IAnalysisService
         if (aiResult.Score > 0 || !string.IsNullOrEmpty(aiResult.Summary))
             analysis.SetAIReview(
                 aiResult.Summary ?? "",
-                aiResult.Score,
+                aiResult.OriginalityScore,
+                aiResult.DepthScore,
+                aiResult.EstimatedReadingMinutes,
                 aiResult.IsPossibleDuplicate);
 
         // Keşif bağlamını kaydet — puan bonusu hesabı için oyuncunun anlık snapshot'ı
