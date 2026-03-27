@@ -105,6 +105,11 @@
   .nav-link-active {
     @apply text-white text-sm font-medium;
   }
+
+  .share-btn {
+    @apply flex items-center justify-center w-6 h-6 rounded text-scout-500
+           hover:text-white hover:bg-scout-800 transition-colors;
+  }
 }
 
 /* Scrollbar */

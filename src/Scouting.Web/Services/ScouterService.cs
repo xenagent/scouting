@@ -31,6 +31,7 @@ public class ScouterService : IScouterService
                 Bio = u.Bio,
                 ApprovedAnalysisCount = u.ApprovedAnalysisCount,
                 TotalLikesReceived = u.TotalLikesReceived,
+                BonusPoints = u.BonusPoints,
                 FollowerCount = u.FollowerCount,
                 Level = u.Level
             })
@@ -53,6 +54,7 @@ public class ScouterService : IScouterService
                 Bio = u.Bio,
                 ApprovedAnalysisCount = u.ApprovedAnalysisCount,
                 TotalLikesReceived = u.TotalLikesReceived,
+                BonusPoints = u.BonusPoints,
                 FollowerCount = u.FollowerCount,
                 Level = u.Level
             })
@@ -147,7 +149,10 @@ public class ScouterService : IScouterService
                 Username = u.Username!,
                 AvatarUrl = u.AvatarUrl,
                 ApprovedAnalysisCount = u.ApprovedAnalysisCount,
-                FollowerCount = u.FollowerCount
+                TotalLikesReceived = u.TotalLikesReceived,
+                BonusPoints = u.BonusPoints,
+                FollowerCount = u.FollowerCount,
+                Level = u.Level
             })
             .ToListAsync(ct);
 

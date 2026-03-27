@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Scouting.Web.Domains.AnalysisEntity;
 using Scouting.Web.Infrastructure;
 
 namespace Scouting.Web.Services;
@@ -60,6 +61,8 @@ public class TransfermarktSyncJob : BackgroundService
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var tm = scope.ServiceProvider.GetRequiredService<ITransfermarktService>();
+        var fileService = scope.ServiceProvider.GetRequiredService<IFileService>();
+        var httpFactory = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>();
 
         var player = await db.Players
             .FirstOrDefaultAsync(p => p.TransfermarktId == tmId, ct);
@@ -69,10 +72,104 @@ public class TransfermarktSyncJob : BackgroundService
         var data = await tm.ScrapePlayerAsync(tmId, ct);
         if (data is null) return;
 
+        // Önceki değeri kaydet — bonus kontrolü için
+        var previousMarketValue = player.MarketValue;
+
         player.UpdateFromTransfermarkt(data);
+
+        // Market value değişimini analiz et ve ilgili scout'lara bonus/ceza ver
+        await CheckAndAwardMarketBonusesAsync(db, player, previousMarketValue, ct);
+
+        // Download player image locally if TM returned one
+        if (!string.IsNullOrEmpty(data.ImageUrl))
+        {
+            try
+            {
+                using var http = httpFactory.CreateClient("TmImage");
+                using var response = await http.GetAsync(data.ImageUrl, HttpCompletionOption.ResponseHeadersRead, ct);
+                if (response.IsSuccessStatusCode)
+                {
+                    var ext = Path.GetExtension(new Uri(data.ImageUrl).AbsolutePath);
+                    if (string.IsNullOrEmpty(ext)) ext = ".jpg";
+                    await using var stream = await response.Content.ReadAsStreamAsync(ct);
+                    var saveResult = await fileService.SavePlayerImageFromStreamAsync(stream, tmId, ext, ct);
+                    if (saveResult.IsSuccess)
+                        player.SetImageUrl(saveResult.Data!);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "TM görsel indirilemedi — tmId={TmId}", tmId);
+            }
+        }
+
         await db.SaveChangesAsync(ct);
 
         _logger.LogInformation("Anlık TM sync tamamlandı — {Name} (tmId={TmId})", player.Name, tmId);
+    }
+
+    // ── Market value bonus / ceza kontrolü ───────────────────────────────────
+
+    /// <summary>
+    /// Piyasa değeri önceki baz noktasına göre ≥%10 değiştiyse:
+    ///   • Artış  → scout'a +25 × keşif katsayısı puan
+    ///   • Düşüş  → scout'a −25 puan
+    /// Bonus ödendikten sonra baz değer yeni değere taşınır (tekrar ödeme olmaz).
+    /// </summary>
+    private async Task CheckAndAwardMarketBonusesAsync(
+        AppDbContext db, Domains.PlayerEntity.Player player,
+        decimal? previousMarketValue, CancellationToken ct)
+    {
+        var currentMarketValue = player.MarketValue;
+        if (!currentMarketValue.HasValue) return;
+
+        // Bu oyuncuya ait, baseline değeri kayıtlı onaylı analizleri getir
+        var analyses = await db.Analyses
+            .Where(a => a.PlayerId == player.Id &&
+                        a.Status == AnalysisStatus.Approved &&
+                        a.ApprovalBaselineMarketValue.HasValue)
+            .ToListAsync(ct);
+
+        if (analyses.Count == 0) return;
+
+        foreach (var analysis in analyses)
+        {
+            var baseline = analysis.ApprovalBaselineMarketValue!.Value;
+            if (baseline <= 0) continue;
+
+            var changeRatio = (currentMarketValue.Value - baseline) / baseline;
+
+            // < %10 değişim — anlamlı değil, atla
+            if (Math.Abs(changeRatio) < 0.10m) continue;
+
+            var scout = await db.Users
+                .FirstOrDefaultAsync(u => u.Id == analysis.CreatedUserId, ct);
+            if (scout is null) continue;
+
+            if (changeRatio >= 0.10m)
+            {
+                // Artış: keşif katsayısıyla ölçeklenmiş bonus
+                var bonus = (int)Math.Round(25 * analysis.DiscoveryMultiplier);
+                scout.AddBonusPoints(bonus);
+                _logger.LogInformation(
+                    "Piyasa değeri bonusu: +{Bonus}p → @{Scout} | {Player} | baz:{Baseline}m → şimdi:{Current}m | katsayı:{Mult}",
+                    bonus, scout.Username, player.Name,
+                    baseline.ToString("0.##"), currentMarketValue.Value.ToString("0.##"),
+                    analysis.DiscoveryMultiplier);
+            }
+            else
+            {
+                // Düşüş: sabit ceza
+                scout.AddBonusPoints(-25);
+                _logger.LogInformation(
+                    "Piyasa değeri cezası: -25p → @{Scout} | {Player} | baz:{Baseline}m → şimdi:{Current}m",
+                    scout.Username, player.Name,
+                    baseline.ToString("0.##"), currentMarketValue.Value.ToString("0.##"));
+            }
+
+            // Baz değeri güncelle — bir sonraki sync bu yeni değeri referans alır
+            analysis.UpdateApprovalBaseline(currentMarketValue.Value);
+        }
     }
 
     // ── 2. Periyodik 3-aylık sync ────────────────────────────────────────────

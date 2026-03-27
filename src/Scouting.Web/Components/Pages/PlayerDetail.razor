@@ -92,7 +92,7 @@ else
                         </div>
                         <div class="text-scout-400 text-sm">
                             <a href="/scouters/@_player.SuggestedByUsername" class="hover:text-pitch-400 transition-colors">
-                                @@_player.SuggestedByUsername
+                                @("@" + _player.SuggestedByUsername)
                             </a> önerdi
                         </div>
                         @if (_isLoggedIn)
@@ -188,21 +188,29 @@ else
                                 <thead>
                                     <tr class="text-xs text-scout-500 border-b border-scout-800">
                                         <th class="text-left py-2 pr-4">Sezon</th>
+                                        <th class="text-left py-2 pr-4 hidden sm:table-cell">Lig / Kupa</th>
                                         <th class="text-center py-2 px-3">Maç</th>
+                                        <th class="text-center py-2 px-3">Dk</th>
                                         <th class="text-center py-2 px-3">Gol</th>
                                         <th class="text-center py-2 px-3">Asist</th>
                                         <th class="text-center py-2 px-3">G+A</th>
+                                        <th class="text-center py-2 px-3 hidden md:table-cell" title="90 dakikada gol">Gol/90</th>
+                                        <th class="text-center py-2 px-3 hidden md:table-cell" title="90 dakikada asist">Ast/90</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach (var s in _player.SeasonStats)
                                     {
                                         <tr class="border-b border-scout-900 hover:bg-scout-900/30">
-                                            <td class="py-2 pr-4 text-white font-medium">@s.Season</td>
+                                            <td class="py-2 pr-4 text-white font-medium whitespace-nowrap">@s.Season</td>
+                                            <td class="py-2 pr-4 text-scout-400 text-xs hidden sm:table-cell">@(s.Competition ?? "—")</td>
                                             <td class="py-2 px-3 text-center text-scout-300">@s.Matches</td>
+                                            <td class="py-2 px-3 text-center text-scout-400 text-xs">@(s.MinutesPlayed > 0 ? s.MinutesPlayed + "'" : "—")</td>
                                             <td class="py-2 px-3 text-center @(s.Goals > 0 ? "text-pitch-400 font-semibold" : "text-scout-500")">@s.Goals</td>
                                             <td class="py-2 px-3 text-center @(s.Assists > 0 ? "text-violet-400 font-semibold" : "text-scout-500")">@s.Assists</td>
                                             <td class="py-2 px-3 text-center text-scout-300">@(s.Goals + s.Assists)</td>
+                                            <td class="py-2 px-3 text-center text-scout-400 text-xs hidden md:table-cell">@(s.GoalsPer90?.ToString("0.00") ?? "—")</td>
+                                            <td class="py-2 px-3 text-center text-scout-400 text-xs hidden md:table-cell">@(s.AssistsPer90?.ToString("0.00") ?? "—")</td>
                                         </tr>
                                     }
                                 </tbody>
@@ -267,7 +275,15 @@ else
                                 }
                                 @if (a.AIScore.HasValue)
                                 {
-                                    <span class="ai-score" title="Kalite Skoru">@a.AIScore.Value.ToString("0.0")/10</span>
+                                    <span class="ai-score" title="Özgünlük: @(a.AIOriginalityScore?.ToString("0.0") ?? "?")/5  ·  Derinlik: @(a.AIDepthScore?.ToString("0.0") ?? "?")/5">
+                                        @a.AIScore.Value.ToString("0.0")/10
+                                    </span>
+                                }
+                                @if (a.EstimatedReadingMinutes.HasValue)
+                                {
+                                    <span class="text-xs text-scout-600" title="Tahmini okuma süresi">
+                                        ~@a.EstimatedReadingMinutes.Value.ToString("0.#") dk okuma
+                                    </span>
                                 }
                                 @if (a.FilledSectionsCount > 0)
                                 {
@@ -316,24 +332,29 @@ else
                             </div>
                         }
 
-                        <!-- Footer: Video + Like -->
-                        <div class="flex items-center justify-between">
+                        <!-- Footer: Video + Share + Like -->
+                        <div class="flex items-center justify-between gap-3 flex-wrap">
                             <a href="@a.VideoUrl" target="_blank" rel="noopener noreferrer"
                                class="inline-flex items-center gap-2 text-sm text-pitch-400 hover:text-pitch-300 transition-colors">
                                 ▶ Videoyu İzle
                             </a>
 
-                            <button @onclick="() => ToggleLike(a)"
-                                    disabled="@(!_isLoggedIn)"
-                                    class="flex items-center gap-1.5 text-sm transition-colors @(a.IsLikedByCurrentUser ? "text-pitch-400" : "text-scout-500 hover:text-scout-300") disabled:cursor-default"
-                                    title="@(_isLoggedIn ? "" : "Beğenmek için giriş yap")">
-                                <svg class="w-4 h-4" fill="@(a.IsLikedByCurrentUser ? "currentColor" : "none")"
-                                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                </svg>
-                                @a.LikeCount
-                            </button>
+                            <div class="flex items-center gap-3 ml-auto">
+                                <ShareButtons Url="@(Nav.BaseUri.TrimEnd('/') + "/players/" + Slug)"
+                                              Title="@($"{_player!.Name} scout analizi — @{a.ScoutUsername}")" />
+
+                                <button @onclick="() => ToggleLike(a)"
+                                        disabled="@(!_isLoggedIn)"
+                                        class="flex items-center gap-1.5 text-sm transition-colors @(a.IsLikedByCurrentUser ? "text-pitch-400" : "text-scout-500 hover:text-scout-300") disabled:cursor-default"
+                                        title="@(_isLoggedIn ? "" : "Beğenmek için giriş yap")">
+                                    <svg class="w-4 h-4" fill="@(a.IsLikedByCurrentUser ? "currentColor" : "none")"
+                                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                    </svg>
+                                    @a.LikeCount
+                                </button>
+                            </div>
                         </div>
                     </div>
                 }

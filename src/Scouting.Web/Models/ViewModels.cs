@@ -48,9 +48,16 @@ public class PlayerDetailVm
 public class TmSeasonStatVm
 {
     public string Season { get; set; } = "";
+    public string? Competition { get; set; }
     public int Matches { get; set; }
+    public int MinutesPlayed { get; set; }
     public int Goals { get; set; }
     public int Assists { get; set; }
+
+    // Computed
+    public decimal? GoalsPer90    => MinutesPlayed > 0 ? Math.Round((decimal)Goals   * 90 / MinutesPlayed, 2) : null;
+    public decimal? AssistsPer90  => MinutesPlayed > 0 ? Math.Round((decimal)Assists * 90 / MinutesPlayed, 2) : null;
+    public int?     MinutesPerGoal => Goals > 0 ? MinutesPlayed / Goals : null;
 }
 
 public class AnalysisVm
@@ -69,7 +76,10 @@ public class AnalysisVm
 
     // Quality / AI
     public string? AISummary { get; set; }
-    public decimal? AIScore { get; set; }
+    public decimal? AIScore { get; set; }              // 0-10 total
+    public decimal? AIOriginalityScore { get; set; }   // 0-5
+    public decimal? AIDepthScore { get; set; }         // 0-5
+    public decimal? EstimatedReadingMinutes { get; set; }
     public bool IsFlaggedAsDuplicate { get; set; }
 
     // Scout
@@ -129,8 +139,12 @@ public class ScouterVm
     public string? Bio { get; set; }
     public int ApprovedAnalysisCount { get; set; }
     public int TotalLikesReceived { get; set; }
+    public int BonusPoints { get; set; }
     public int FollowerCount { get; set; }
     public UserLevel Level { get; set; }
+
+    // Computed
+    public int TotalPoints => ApprovedAnalysisCount * 5 + TotalLikesReceived + BonusPoints;
 }
 
 public class ScouterProfileVm : ScouterVm
@@ -164,6 +178,22 @@ public class PendingAnalysisVm
     public bool IsFlaggedAsDuplicate { get; set; }
     public decimal? QualityScore { get; set; }
     public DateTime SubmittedAt { get; set; }
+}
+
+public class MyAnalysisVm
+{
+    public Guid Id { get; set; }
+    public string PlayerName { get; set; } = "";
+    public string PlayerSlug { get; set; } = "";
+    public string? PlayerImageUrl { get; set; }
+    public string ContentPreview { get; set; } = "";
+    public decimal? AIScore { get; set; }
+    public string? AISummary { get; set; }
+    public decimal? EstimatedReadingMinutes { get; set; }
+    public int LikeCount { get; set; }
+    public string Status { get; set; } = "";
+    public bool IsFlaggedAsDuplicate { get; set; }
+    public DateTime CreatedAt { get; set; }
 }
 
 // ── Auth ──────────────────────────────────────────────────────────────────────

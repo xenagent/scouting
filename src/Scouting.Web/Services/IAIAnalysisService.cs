@@ -29,16 +29,26 @@ public class AIAnalysisInput
 
 /// <summary>
 /// Result returned by the AI evaluation pipeline.
+/// Score = OriginalityScore (0-5) + DepthScore (0-5), max 10.
 /// </summary>
 public class AIEvaluationResult
 {
     /// <summary>False when stub is active (AWS Bedrock not yet configured).</summary>
     public bool IsAvailable { get; set; }
 
-    /// <summary>Quality score 0–10.</summary>
-    public decimal Score { get; set; }
+    /// <summary>Originality vs existing analyses, 0–5.</summary>
+    public decimal OriginalityScore { get; set; }
 
-    /// <summary>AI-generated one-paragraph summary of the analysis.</summary>
+    /// <summary>Depth/detail score based on content richness and reading time, 0–5.</summary>
+    public decimal DepthScore { get; set; }
+
+    /// <summary>Total quality score 0–10 (OriginalityScore + DepthScore).</summary>
+    public decimal Score => OriginalityScore + DepthScore;
+
+    /// <summary>Estimated reading time in minutes, based on content length and density.</summary>
+    public decimal EstimatedReadingMinutes { get; set; }
+
+    /// <summary>AI-generated 2-3 sentence Turkish summary of the analysis.</summary>
     public string? Summary { get; set; }
 
     /// <summary>True if the content is highly similar to an existing analysis.</summary>

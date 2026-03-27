@@ -16,7 +16,14 @@ public class User : BaseModel
     public UserLevel Level { get; private set; } = UserLevel.Starter;
     public int ApprovedAnalysisCount { get; private set; }
     public int TotalLikesReceived { get; private set; }
+    public int BonusPoints { get; private set; }        // market değeri, transfer, istatistik bonusları
     public int FollowerCount { get; private set; }
+
+    /// <summary>
+    /// Toplam puan: her analiz 5p + her beğeni 1p + bonus puanlar.
+    /// Seviye bu değere göre hesaplanır.
+    /// </summary>
+    public int TotalPoints => ApprovedAnalysisCount * 5 + TotalLikesReceived + BonusPoints;
 
     public static ResultDomain<User> Create(string email, string username, string passwordHash)
     {
@@ -59,13 +66,22 @@ public class User : BaseModel
         RecalculateLevel();
     }
 
+    /// <summary>
+    /// Keşif/sonuç bonusu ekler: market değeri artışı, transfer, istatistik iyileşmesi.
+    /// Negatif değer verilebilir (market değeri düşüşü gibi cezalar).
+    /// </summary>
+    public void AddBonusPoints(int points)
+    {
+        BonusPoints += points;
+        if (BonusPoints < 0) BonusPoints = 0;
+        RecalculateLevel();
+    }
+
     public void IncrementFollowerCount() => FollowerCount++;
     public void DecrementFollowerCount() { if (FollowerCount > 0) FollowerCount--; }
 
     private void RecalculateLevel()
     {
-        var points = ApprovedAnalysisCount * 10 + TotalLikesReceived;
-        Level = UserLevelExtensions.FromPoints(points);
+        Level = UserLevelExtensions.FromPoints(TotalPoints);
     }
 }
-
