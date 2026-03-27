@@ -149,7 +149,13 @@ public partial class TransfermarktService : ITransfermarktService
     /// <summary>
     /// items tablosundaki her satırı sezon istatistiğine dönüştürür.
     /// Toplam/Total satırları atlanır.
-    /// Hücre sırası: [0]=Sezon [1]=Kulüp [2]=Lig [3]=Mevki [4]=Maç [5]=Gol [6]=Asist ...
+    ///
+    /// TM leistungsdaten tablo hücre sırası (TR dili):
+    ///   [0] Sezon  [1] Kulüp  [2] Lig  [3] Mevki
+    ///   [4] Maçlar  [5] Gol  [6] Asist  [7] Öz gol
+    ///   [8] Sarı  [9] İkinci sarı  [10] Kırmızı
+    ///   [11] Gol/dakika  [12] Toplam dakika
+    /// Sütun sayısı sayfaya göre değişebilir; güvenli okuma yapılır.
     /// </summary>
     private static List<PlayerSeasonStats> ParseSeasonStats(HtmlDocument doc)
     {
@@ -161,7 +167,7 @@ public partial class TransfermarktService : ITransfermarktService
         {
             var text = row.InnerText;
             if (text.Contains("Toplam", StringComparison.OrdinalIgnoreCase) ||
-                text.Contains("Total", StringComparison.OrdinalIgnoreCase) ||
+                text.Contains("Total",  StringComparison.OrdinalIgnoreCase) ||
                 text.Contains("Gesamt", StringComparison.OrdinalIgnoreCase))
                 continue;
 
@@ -170,14 +176,33 @@ public partial class TransfermarktService : ITransfermarktService
 
             list.Add(new PlayerSeasonStats
             {
-                Season = cells[0].InnerText.Trim(),
-                Matches = ParseInt(cells[4].InnerText),
-                Goals = ParseInt(cells[5].InnerText),
-                Assists = ParseInt(cells[6].InnerText)
+                Season      = cells[0].InnerText.Trim(),
+                Competition = cells.Count > 2 ? CleanText(cells[2].InnerText) : null,
+                Matches     = ParseInt(cells[4].InnerText),
+                Goals       = ParseInt(cells[5].InnerText),
+                Assists     = ParseInt(cells[6].InnerText),
+                // Dakika sütunu 12. hücrede, bazı sayfalarda olmayabilir
+                MinutesPlayed = cells.Count > 12 ? ParseMinutes(cells[12].InnerText) : 0
             });
         }
 
         return list;
+    }
+
+    /// <summary>"1.234'" veya "1.234 Min." → int dakika</summary>
+    private static int ParseMinutes(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return 0;
+        // Tek tırnak, "Min.", nokta/virgül ayraçlarını temizle
+        var clean = Regex.Replace(text, @"[^\d]", "");
+        return int.TryParse(clean, out var v) ? v : 0;
+    }
+
+    private static string? CleanText(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        var t = text.Trim();
+        return t.Length == 0 ? null : t;
     }
 
     private static int ParseInt(string? text)

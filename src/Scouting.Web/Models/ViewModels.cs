@@ -48,9 +48,16 @@ public class PlayerDetailVm
 public class TmSeasonStatVm
 {
     public string Season { get; set; } = "";
+    public string? Competition { get; set; }
     public int Matches { get; set; }
+    public int MinutesPlayed { get; set; }
     public int Goals { get; set; }
     public int Assists { get; set; }
+
+    // Computed
+    public decimal? GoalsPer90    => MinutesPlayed > 0 ? Math.Round((decimal)Goals   * 90 / MinutesPlayed, 2) : null;
+    public decimal? AssistsPer90  => MinutesPlayed > 0 ? Math.Round((decimal)Assists * 90 / MinutesPlayed, 2) : null;
+    public int?     MinutesPerGoal => Goals > 0 ? MinutesPlayed / Goals : null;
 }
 
 public class AnalysisVm

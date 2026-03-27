@@ -188,21 +188,29 @@ else
                                 <thead>
                                     <tr class="text-xs text-scout-500 border-b border-scout-800">
                                         <th class="text-left py-2 pr-4">Sezon</th>
+                                        <th class="text-left py-2 pr-4 hidden sm:table-cell">Lig / Kupa</th>
                                         <th class="text-center py-2 px-3">Maç</th>
+                                        <th class="text-center py-2 px-3">Dk</th>
                                         <th class="text-center py-2 px-3">Gol</th>
                                         <th class="text-center py-2 px-3">Asist</th>
                                         <th class="text-center py-2 px-3">G+A</th>
+                                        <th class="text-center py-2 px-3 hidden md:table-cell" title="90 dakikada gol">Gol/90</th>
+                                        <th class="text-center py-2 px-3 hidden md:table-cell" title="90 dakikada asist">Ast/90</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach (var s in _player.SeasonStats)
                                     {
                                         <tr class="border-b border-scout-900 hover:bg-scout-900/30">
-                                            <td class="py-2 pr-4 text-white font-medium">@s.Season</td>
+                                            <td class="py-2 pr-4 text-white font-medium whitespace-nowrap">@s.Season</td>
+                                            <td class="py-2 pr-4 text-scout-400 text-xs hidden sm:table-cell">@(s.Competition ?? "—")</td>
                                             <td class="py-2 px-3 text-center text-scout-300">@s.Matches</td>
+                                            <td class="py-2 px-3 text-center text-scout-400 text-xs">@(s.MinutesPlayed > 0 ? s.MinutesPlayed + "'" : "—")</td>
                                             <td class="py-2 px-3 text-center @(s.Goals > 0 ? "text-pitch-400 font-semibold" : "text-scout-500")">@s.Goals</td>
                                             <td class="py-2 px-3 text-center @(s.Assists > 0 ? "text-violet-400 font-semibold" : "text-scout-500")">@s.Assists</td>
                                             <td class="py-2 px-3 text-center text-scout-300">@(s.Goals + s.Assists)</td>
+                                            <td class="py-2 px-3 text-center text-scout-400 text-xs hidden md:table-cell">@(s.GoalsPer90?.ToString("0.00") ?? "—")</td>
+                                            <td class="py-2 px-3 text-center text-scout-400 text-xs hidden md:table-cell">@(s.AssistsPer90?.ToString("0.00") ?? "—")</td>
                                         </tr>
                                     }
                                 </tbody>

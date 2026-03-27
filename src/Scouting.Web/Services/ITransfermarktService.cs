@@ -3,9 +3,33 @@ namespace Scouting.Web.Services;
 public class PlayerSeasonStats
 {
     public string Season { get; init; } = "";
+    public string? Competition { get; init; }   // Lig / kupa adı
     public int Matches { get; init; }
+    public int MinutesPlayed { get; init; }     // Toplam oynanan dakika
     public int Goals { get; init; }
     public int Assists { get; init; }
+
+    // Türetilmiş — saklanmaz, hesaplanır
+    public decimal? GoalsPer90      => MinutesPlayed > 0 ? Math.Round((decimal)Goals   * 90 / MinutesPlayed, 2) : null;
+    public decimal? AssistsPer90    => MinutesPlayed > 0 ? Math.Round((decimal)Assists * 90 / MinutesPlayed, 2) : null;
+    public int?     MinutesPerGoal  => Goals > 0 ? MinutesPlayed / Goals : null;
+}
+
+/// <summary>
+/// Maç bazında oyuncu notu (10 üzerinden).
+/// Kaynak: SofaScore / WhoScored / FotMob — henüz entegre edilmedi,
+/// alan yapısı hazır, servis katmanı sonradan bağlanacak.
+/// </summary>
+public class PlayerMatchRating
+{
+    public string Season { get; init; } = "";
+    public string? Competition { get; init; }
+    public DateOnly MatchDate { get; init; }
+    public string? Opponent { get; init; }
+    public bool IsHome { get; init; }
+    public int MinutesPlayed { get; init; }
+    public decimal Rating { get; init; }        // örn. 7.4 (10 üzerinden)
+    public string Source { get; init; } = "";   // "sofascore" | "whoscored" | "fotmob"
 }
 
 public class TransfermarktPlayerData
