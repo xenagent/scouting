@@ -166,6 +166,21 @@ public class PendingAnalysisVm
     public DateTime SubmittedAt { get; set; }
 }
 
+public class MyAnalysisVm
+{
+    public Guid Id { get; set; }
+    public string PlayerName { get; set; } = "";
+    public string PlayerSlug { get; set; } = "";
+    public string? PlayerImageUrl { get; set; }
+    public string ContentPreview { get; set; } = "";
+    public decimal? AIScore { get; set; }
+    public string? AISummary { get; set; }
+    public int LikeCount { get; set; }
+    public string Status { get; set; } = "";
+    public bool IsFlaggedAsDuplicate { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
 public class PlayerFilter

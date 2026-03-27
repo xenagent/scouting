@@ -15,6 +15,7 @@
                     <div class="hidden sm:flex items-center gap-6">
                         <a href="/players" class="@LinkClass("/players")">Oyuncular</a>
                         <a href="/scouters" class="@LinkClass("/scouters")">Scoutlar</a>
+                        <a href="/analizlerim" class="@LinkClass("/analizlerim")">Analizlerim</a>
                         @if (auth.User.IsInRole("Admin"))
                         {
                             <a href="/admin" class="@LinkClass("/admin") text-yellow-500">Admin</a>

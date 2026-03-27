@@ -22,6 +22,9 @@ file static class Selectors
 
     // Sezon istatistik tablosu — her satır bir sezonu temsil eder
     public const string TableRows = "//table[contains(@class,'items')]/tbody/tr";
+
+    // Oyuncu profil fotoğrafı
+    public const string PlayerImage = "//img[contains(@class,'data-header__profile-image')]";
 }
 
 // ── Service ───────────────────────────────────────────────────────────────────
@@ -90,12 +93,16 @@ public partial class TransfermarktService : ITransfermarktService
             Age = ParseAge(GetText(doc, Selectors.Age)),
             Team = GetText(doc, Selectors.Team),
             MarketValue = ParseMarketValue(GetText(doc, Selectors.MarketValue)),
-            SeasonStats = ParseSeasonStats(doc)
+            SeasonStats = ParseSeasonStats(doc),
+            ImageUrl = GetAttr(doc, Selectors.PlayerImage, "src")
         };
     }
 
     private static string? GetText(HtmlDocument doc, string xpath)
         => doc.DocumentNode.SelectSingleNode(xpath)?.InnerText?.Trim();
+
+    private static string? GetAttr(HtmlDocument doc, string xpath, string attr)
+        => doc.DocumentNode.SelectSingleNode(xpath)?.GetAttributeValue(attr, null);
 
     /// <summary>"26.05.2006 (19)" veya "19" → 19</summary>
     private static int? ParseAge(string? text)

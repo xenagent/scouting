@@ -90,6 +90,37 @@ public class AnalysisService : IAnalysisService
         return ServiceListResult<PendingAnalysisVm>.Ok(items);
     }
 
+    public async Task<ServiceListResult<MyAnalysisVm>> GetMyAnalysesAsync(
+        Guid userId, int page = 1, int pageSize = 20, CancellationToken ct = default)
+    {
+        var items = await (
+            from a in _db.Analyses.AsNoTracking()
+            where a.CreatedUserId == userId
+            join p in _db.Players.AsNoTracking() on a.PlayerId equals p.Id
+            orderby a.CreatedTime descending
+            select new MyAnalysisVm
+            {
+                Id = a.Id,
+                PlayerName = p.Name!,
+                PlayerSlug = p.Slug!,
+                PlayerImageUrl = p.ImageUrl,
+                ContentPreview = a.Content!.Length > 200
+                    ? a.Content.Substring(0, 200) + "..."
+                    : a.Content,
+                AIScore = a.AIScore,
+                AISummary = a.AISummary,
+                LikeCount = a.LikeCount,
+                Status = a.Status.ToString(),
+                IsFlaggedAsDuplicate = a.IsFlaggedAsDuplicate,
+                CreatedAt = a.CreatedTime
+            })
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return ServiceListResult<MyAnalysisVm>.Ok(items);
+    }
+
     public async Task<ServiceResult> AddAnalysisAsync(
         Guid playerId, AnalysisInput input, Guid userId, CancellationToken ct = default)
     {

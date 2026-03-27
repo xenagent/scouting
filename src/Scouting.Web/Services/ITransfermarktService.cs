@@ -18,7 +18,7 @@ public class TransfermarktPlayerData
     public decimal? MarketValueMillions { get; init; }   // EUR milyon cinsinden
     public List<PlayerSeasonStats> SeasonStats { get; init; } = new();
     public decimal? MarketValue { get; set; }
-
+    public string? ImageUrl { get; init; }
 }
 
 public interface ITransfermarktService

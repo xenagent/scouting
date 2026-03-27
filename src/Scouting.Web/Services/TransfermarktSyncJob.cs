@@ -60,6 +60,8 @@ public class TransfermarktSyncJob : BackgroundService
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var tm = scope.ServiceProvider.GetRequiredService<ITransfermarktService>();
+        var fileService = scope.ServiceProvider.GetRequiredService<IFileService>();
+        var httpFactory = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>();
 
         var player = await db.Players
             .FirstOrDefaultAsync(p => p.TransfermarktId == tmId, ct);
@@ -70,6 +72,30 @@ public class TransfermarktSyncJob : BackgroundService
         if (data is null) return;
 
         player.UpdateFromTransfermarkt(data);
+
+        // Download player image locally if TM returned one
+        if (!string.IsNullOrEmpty(data.ImageUrl))
+        {
+            try
+            {
+                using var http = httpFactory.CreateClient("TmImage");
+                using var response = await http.GetAsync(data.ImageUrl, HttpCompletionOption.ResponseHeadersRead, ct);
+                if (response.IsSuccessStatusCode)
+                {
+                    var ext = Path.GetExtension(new Uri(data.ImageUrl).AbsolutePath);
+                    if (string.IsNullOrEmpty(ext)) ext = ".jpg";
+                    await using var stream = await response.Content.ReadAsStreamAsync(ct);
+                    var saveResult = await fileService.SavePlayerImageFromStreamAsync(stream, tmId, ext, ct);
+                    if (saveResult.IsSuccess)
+                        player.SetImageUrl(saveResult.Data!);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "TM görsel indirilemedi — tmId={TmId}", tmId);
+            }
+        }
+
         await db.SaveChangesAsync(ct);
 
         _logger.LogInformation("Anlık TM sync tamamlandı — {Name} (tmId={TmId})", player.Name, tmId);
