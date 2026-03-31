@@ -21,40 +21,40 @@ public static class SeedData
         // ── Kullanıcılar ──────────────────────────────────────────────────────
         var hash = BCrypt.Net.BCrypt.HashPassword("scout123");
 
-        var admin   = MakeUser("admin@scouting.com",  "sç",       hash, admin: true);
-        var emre    = MakeUser("emre@scout.com",      "utku atakul",     hash);
-        var mehmet  = MakeUser("mehmet@scout.com",    "mutlu taşova",    hash);
-        var ahmet   = MakeUser("ahmet@scout.com",     "bilal çınar", hash);
-        var zeynep  = MakeUser("zeynep@scout.com",    "onur özmay",  hash);
+        var admin = MakeUser("admin@scouting.com", "sç", hash, admin: true);
+        var emre = MakeUser("emre@scout.com", "Dost Şenci", hash);
+        var mehmet = MakeUser("mehmet@scout.com", "mutlu taşova", hash);
+        var ahmet = MakeUser("ahmet@scout.com", "Barış Nadaroğlu", hash);
+        var zeynep = MakeUser("zeynep@scout.com", "onur özmay", hash);
 
         db.Users.AddRange(admin, emre, mehmet, ahmet, zeynep);
 
         // ── Oyuncular (approved) ──────────────────────────────────────────────
-        var arda = MakePlayer("Arda Güler",           19, PlayerPosition.CAM,
+        var arda = MakePlayer("Arda Güler", 19, PlayerPosition.CAM,
             "Real Madrid", "La Liga", "Türkiye", emre.Id,
             imageUrl: "https://img.a.transfermarkt.technology/portrait/header/861410-1699472585.jpg?lm=1",
             tmId: "887080", tmUrl: "https://www.transfermarkt.com.tr/arda-guler/profil/spieler/887080",
             marketValue: 80m);
 
-        var kenan = MakePlayer("Kenan Yıldız",        19, PlayerPosition.LW,
+        var kenan = MakePlayer("Kenan Yıldız", 19, PlayerPosition.LW,
             "Juventus", "Serie A", "Türkiye", emre.Id,
             imageUrl: "https://img.a.transfermarkt.technology/portrait/header/845654-1759822280.jpg?lm=1",
             tmId: "920455", tmUrl: "https://www.transfermarkt.com.tr/kenan-yildiz/profil/spieler/920455",
             marketValue: 40m);
 
-        var ferdi = MakePlayer("Ferdi Kadıoğlu",      24, PlayerPosition.LB,
+        var ferdi = MakePlayer("Ferdi Kadıoğlu", 24, PlayerPosition.LB,
             "Brighton", "Premier League", "Türkiye", mehmet.Id,
             imageUrl: "https://img.a.transfermarkt.technology/portrait/header/369316-1724792538.jpg?lm=1",
             marketValue: 35m);
 
-        var semih = MakePlayer("Semih Kılıçsoy",      19, PlayerPosition.ST,
+        var semih = MakePlayer("Semih Kılıçsoy", 19, PlayerPosition.ST,
             "Beşiktaş", "Süper Lig", "Türkiye", mehmet.Id,
             imageUrl: "https://img.a.transfermarkt.technology/portrait/header/875334-1757662611.jpg?lm=1",
             marketValue: 12m);
 
         var karetsas = MakePlayer("Konstantinos Karetsas", 19, PlayerPosition.CAM,
             "Racing Genk", "Belgium Pro League", "Yunanistan", ahmet.Id,
-            imageUrl:"https://img.a.transfermarkt.technology/portrait/header/990148-1742566542.jpg?lm=1",
+            imageUrl: "https://img.a.transfermarkt.technology/portrait/header/990148-1742566542.jpg?lm=1",
             tmId: "990148", tmUrl: "https://www.transfermarkt.com.tr/konstantinos-karetsas/profil/spieler/990148",
             marketValue: 8m);
 
@@ -73,7 +73,8 @@ public static class SeedData
         // Arda Güler için analizler
         var a1 = MakeAnalysis(arda.Id, emre.Id,
             videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-            general: "Arda Güler bu sezon Real Madrid'de beklentilerin çok üzerinde bir performans sergilemektedir. 19 yaşında Avrupa'nın en büyük kulübünde oynamak başlı başına büyük bir başarı olmakla birlikte, Arda sahaya çıktığı her maçta fark yaratan oyunudur. Top kontrolü, dar alanda etkinliği ve yaratıcı paslarıyla dikkat çekmektedir.",
+            general:
+            "Arda Güler bu sezon Real Madrid'de beklentilerin çok üzerinde bir performans sergilemektedir. 19 yaşında Avrupa'nın en büyük kulübünde oynamak başlı başına büyük bir başarı olmakla birlikte, Arda sahaya çıktığı her maçta fark yaratan oyunudur. Top kontrolü, dar alanda etkinliği ve yaratıcı paslarıyla dikkat çekmektedir.",
             technical: "Top kontrolü ve ilk temas kalitesi üst düzey. Sıkı markajda top kaybetme oranı oldukça düşük. Her iki ayağını da etkin şekilde kullanabiliyor. Şut isabeti özellikle sert vuruşlarda yüksek.",
             tactical: "Pozisyon alışı çok zekice. Serbest kalma hareketleri organize savunmaları bile zorlayacak düzeyde. Pressing'e katılımı sezon başına göre belirgin şekilde artmış.",
             strengths: "Dar alanda sürpriz geçişler, frikik ve serbest vuruş uzmanlığı, genç yaşına rağmen maç okuma kapasitesi, karizmatik liderlik özellikleri.",
@@ -117,7 +118,8 @@ public static class SeedData
         // Semih Kılıçsoy analizi
         var a5 = MakeAnalysis(semih.Id, ahmet.Id,
             videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-            general: "Semih Kılıçsoy Beşiktaş'ta sahneye çıkışından itibaren Süper Lig'in en dikkat çeken genç oyuncularından biri olmuştur. Ceza sahası içindeki zekâsı, isabetli bitirişleri ve yaşına oranla sahip olduğu olgunluk seviyesi onu özel kılmaktadır. Avrupa kulüpleri tarafından yakından takip edildiği bilinmektedir.",
+            general:
+            "Semih Kılıçsoy Beşiktaş'ta sahneye çıkışından itibaren Süper Lig'in en dikkat çeken genç oyuncularından biri olmuştur. Ceza sahası içindeki zekâsı, isabetli bitirişleri ve yaşına oranla sahip olduğu olgunluk seviyesi onu özel kılmaktadır. Avrupa kulüpleri tarafından yakından takip edildiği bilinmektedir.",
             technical: "Ceza sahası içinde son derece soğukkanlı. Şut geometrisi iyi, açıyı güzel görüyor. Kafa vuruşu da boya rağmen etkili.",
             strengths: "Ceza sahası zekâsı, bitiriş kalitesi, genç yaşta rekabetçi ruh.",
             weaknesses: "Fiziksel olarak gelişmekte. Savunmaya katkı düşük.",
@@ -136,7 +138,7 @@ public static class SeedData
             score: 7.0m, summary: "Belçika'nın en değerli genç yeteneklerinden biri. Büyük kulüplere adım atacak potansiyel var.");
         a6.Approve();
         for (var i = 0; i < 5; i++) a6.IncrementLikeCount();
-        
+
         // Pending analizler (pending oyuncular için)
         var a9 = MakeAnalysis(efecan.Id, ahmet.Id,
             videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
@@ -185,7 +187,6 @@ public static class SeedData
             Vote.Create(semih.Id, zeynep.Id, VoteType.Up),
             Vote.Create(karetsas.Id, ahmet.Id, VoteType.Up),
             Vote.Create(karetsas.Id, zeynep.Id, VoteType.Up)
-
         );
 
         // Player score güncelleme
@@ -258,6 +259,7 @@ public static class SeedData
             };
             p.UpdateFromTransfermarkt(fakeData);
         }
+
         return p;
     }
 
@@ -273,7 +275,10 @@ public static class SeedData
             technical, tactical, physical, strengths, weaknesses).Data!;
 
         if (score.HasValue || summary is not null)
-            a.SetAIReview(summary ?? "", score ?? 0m);
+        {
+            a.SetAIReview(summary ?? "", score ?? 0, 0, 0, false);
+        }
+
 
         return a;
     }
